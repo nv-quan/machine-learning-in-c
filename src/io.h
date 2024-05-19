@@ -6,6 +6,6 @@
 
 // Returns data length, put data in buffer
 // If there is no more data, return 0
-int get_data(Data* buffer, size_t buffer_size);
+size_t get_data(Data* buffer, size_t buffer_size);
 
 #endif /* ifndef IO_H */
