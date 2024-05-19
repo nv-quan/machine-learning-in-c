@@ -1,0 +1,6 @@
+[submodule "vendor/libcsv"]
+	path = vendor/libcsv
+	url = https://github.com/rgamble/libcsv
+[submodule "vendor/cJSON"]
+	path = vendor/cJSON
+	url = https://github.com/DaveGamble/cJSON
