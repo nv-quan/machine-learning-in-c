@@ -14,4 +14,5 @@ DoubleArray make_double_array(size_t size) {
   DoubleArray new_array;
   double *array_content = (double *) safe_malloc(sizeof(double) * size);
   new_array.content = array_content;
+  return new_array;
 }
