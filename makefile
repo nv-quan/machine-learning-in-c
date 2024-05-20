@@ -7,7 +7,7 @@ CFLAGS = -std=c99 -I./src
 # Directories
 SRCDIR = src
 BUILDDIR = build
-TARGET = $(BUILDDIR)/my_program
+TARGET = $(BUILDDIR)/ml_algos
 
 # Source files
 SRC = $(wildcard $(SRCDIR)/*.c) $(wildcard $(SRCDIR)/algorithms/*.c)
