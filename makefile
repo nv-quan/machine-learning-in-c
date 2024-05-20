@@ -23,12 +23,12 @@ all: $(TARGET) tags
 
 # Linking
 $(TARGET): $(OBJ)
-	mkdir -p $(BUILDDIR)
+	@mkdir -p $(BUILDDIR)
 	$(CC) -o $@ $^
 
 # Compiling with automatic dependency generation
 $(BUILDDIR)/%.o: $(SRCDIR)/%.c
-	mkdir -p $(dir $@)
+	@mkdir -p $(dir $@)
 	$(CC) $(CFLAGS) -MMD -c -o $@ $<
 
 # Include dependency files
