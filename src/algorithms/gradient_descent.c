@@ -1,2 +1,1 @@
-void stochastic_gradient_descent() {
-}
+void stochastic_gradient_descent() {}

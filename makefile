@@ -11,6 +11,7 @@ TARGET = $(BUILDDIR)/ml_algos
 
 # Source files
 SRC = $(wildcard $(SRCDIR)/*.c) $(wildcard $(SRCDIR)/algorithms/*.c)
+HDR = $(wildcard $(SRCDIR)/*.h) $(wildcard $(SRCDIR)/algorithms/*.h)
 
 # Object files
 OBJ = $(SRC:$(SRCDIR)/%.c=$(BUILDDIR)/%.o)
@@ -19,7 +20,7 @@ OBJ = $(SRC:$(SRCDIR)/%.c=$(BUILDDIR)/%.o)
 DEPS = $(OBJ:.o=.d)
 
 # Default target
-all: $(TARGET) tags
+all: format $(TARGET) tags
 
 # Linking
 $(TARGET): $(OBJ)
@@ -35,13 +36,22 @@ $(BUILDDIR)/%.o: $(SRCDIR)/%.c
 -include $(DEPS)
 
 # Generate tags
-tags: $(SRC)
+tags: $(SRC) $(HDR)
 	ctags -R $(SRCDIR)
+
+# Format code
+format: $(SRC) $(HDR)
+	@if command -v clang-format >/dev/null 2>&1; then \
+		echo "Running clang-format..."; \
+		clang-format -i $^; \
+	else \
+		echo "clang-format not found, skipping code formatting"; \
+	fi
 
 # Clean up
 clean:
 	rm -rf $(BUILDDIR) tags
 
 # Phony targets
-.PHONY: all clean tags
+.PHONY: all clean tags format
 
