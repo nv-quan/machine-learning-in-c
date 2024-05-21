@@ -1,3 +1,4 @@
+#include "algorithms/gradient_descent.h"
 #include "config.h"
 #include "data.h"
 #include "io.h"
@@ -8,7 +9,7 @@ int main(void) {
   // Data buffer[MAX_DATA_LENGTH];
   switch (config.algorithm) {
   case STOCHASTIC_GRADIENT_DESCENT:
-    // stochastic_gradient_descent();
+    stochastic_gradient_descent(config);
     break;
   case BATCH_GRADIENT_DESCENT:
     break;

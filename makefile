@@ -1,8 +1,12 @@
 # Compiler
 CC = gcc
 
-# Compiler flags for C99 standard
+# Compiler flags
 CFLAGS = -std=c99 -I./src
+
+# Linking flags
+# -lcsv: Use libcsv
+LINKING_FLAGS = -lcsv
 
 # Directories
 SRCDIR = src
@@ -25,7 +29,7 @@ all: format $(TARGET) tags
 # Linking
 $(TARGET): $(OBJ)
 	@mkdir -p $(BUILDDIR)
-	$(CC) -o $@ $^
+	$(CC) $(LINKING_FLAGS) -o $@ $^
 
 # Compiling with automatic dependency generation
 $(BUILDDIR)/%.o: $(SRCDIR)/%.c
@@ -43,7 +47,18 @@ tags: $(SRC) $(HDR)
 format: $(SRC) $(HDR)
 	@if command -v clang-format >/dev/null 2>&1; then \
 		echo "Running clang-format..."; \
-		clang-format -i $^; \
+		mkdir -p $(BUILDDIR); \
+		if [ -z "$$(ls -A $(BUILDDIR))" ]; then \
+			echo "Formatting all files (first run)..."; \
+			clang-format -i $(SRC) $(HDR); \
+		else \
+			for file in $(SRC) $(HDR); do \
+				if [ "$$(find "$${file}" -newer $(BUILDDIR))" ]; then \
+					echo "Formatting $${file}"; \
+					clang-format -i "$${file}"; \
+				fi; \
+			done \
+		fi \
 	else \
 		echo "clang-format not found, skipping code formatting"; \
 	fi
