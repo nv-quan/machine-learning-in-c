@@ -17,5 +17,5 @@ void stochastic_gradient_descent(Config config) {
   }
   while ((i = fread(buffer, sizeof(char), BUFFER_SIZE, fp)) > 0) {
   }
-  // csv_parse(&my_csv_parser, fp,
+  /* csv_parse(&my_csv_parser, fp, */
 }

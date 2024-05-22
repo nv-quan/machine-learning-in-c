@@ -6,7 +6,7 @@
 
 int main(void) {
   Config config = get_config();
-  // Data buffer[MAX_DATA_LENGTH];
+  /* Data buffer[MAX_DATA_LENGTH]; */
   switch (config.algorithm) {
   case STOCHASTIC_GRADIENT_DESCENT:
     stochastic_gradient_descent(config);
@@ -16,6 +16,6 @@ int main(void) {
   default:
     break;
   }
-  // display_result();
+  /* display_result();*/
   return 0;
 }

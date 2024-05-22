@@ -2,7 +2,7 @@
 CC = gcc
 
 # Compiler flags
-CFLAGS = -std=c99 -I./src
+CFLAGS = -std=c89 -I./src
 
 # Linking flags
 # -lcsv: Use libcsv
@@ -29,12 +29,12 @@ all: format $(TARGET) tags
 # Linking
 $(TARGET): $(OBJ)
 	@mkdir -p $(BUILDDIR)
-	$(CC) $(LINKING_FLAGS) -o $@ $^
+	$(CC) $^ $(LINKING_FLAGS) -o $@
 
 # Compiling with automatic dependency generation
 $(BUILDDIR)/%.o: $(SRCDIR)/%.c
 	@mkdir -p $(dir $@)
-	$(CC) $(CFLAGS) -MMD -c -o $@ $<
+	$(CC) $< $(CFLAGS) -MMD -c -o $@
 
 # Include dependency files
 -include $(DEPS)

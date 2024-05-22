@@ -56,3 +56,6 @@ build/ml_algos
 
 # Ctags
 tags
+
+# Vim temp files
+*.un~
