@@ -1,4 +1,5 @@
 #include "config.h"
+#include "io.h"
 #include <string.h>
 
 Config get_config() {
