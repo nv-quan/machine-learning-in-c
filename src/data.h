@@ -28,4 +28,11 @@ DType d_num_type(const DNumber *number);
 DType d_numarr_type(const DNumberArray *numarr);
 */
 
+/* (x, y) data point where x is array of n length and y is double */
+typedef struct point_data {
+  size_t x_length;
+  double *x;
+  double y;
+} Point;
+
 #endif

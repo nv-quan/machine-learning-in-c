@@ -9,3 +9,8 @@ void *safe_malloc(size_t size) {
   }
   return p;
 }
+
+void safe_free(void **p) {
+  free(*p);
+  *p = NULL;
+}

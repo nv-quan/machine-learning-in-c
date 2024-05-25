@@ -1,3 +1,4 @@
+
 # Compiler
 CC = gcc
 
@@ -24,7 +25,7 @@ OBJ = $(SRC:$(SRCDIR)/%.c=$(BUILDDIR)/%.o)
 DEPS = $(OBJ:.o=.d)
 
 # Default target
-all: format $(TARGET) tags
+all: format $(TARGET) tags cscope
 
 # Linking
 $(TARGET): $(OBJ)
@@ -42,6 +43,15 @@ $(BUILDDIR)/%.o: $(SRCDIR)/%.c
 # Generate tags
 tags: $(SRC) $(HDR)
 	ctags -R $(SRCDIR)
+
+# Generate cscope files
+cscope: cscope.files
+	@echo "Generating cscope files..."
+	@cscope -b -q -k
+
+cscope.files: $(SRC) $(HDR)
+	@echo "Updating cscope.files..."
+	@echo $(SRC) $(HDR) | tr ' ' '\n' > cscope.files
 
 # Format code
 format: $(SRC) $(HDR)
@@ -65,8 +75,7 @@ format: $(SRC) $(HDR)
 
 # Clean up
 clean:
-	rm -rf $(BUILDDIR) tags
+	rm -rf $(BUILDDIR) tags cscope.out cscope.in.out cscope.po.out cscope.files
 
 # Phony targets
-.PHONY: all clean tags format
-
+.PHONY: all clean tags format cscope

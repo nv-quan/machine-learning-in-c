@@ -60,3 +60,6 @@ tags
 # Vim temp files
 *.un~
 *.swp
+
+# Cscope
+cscope.files
