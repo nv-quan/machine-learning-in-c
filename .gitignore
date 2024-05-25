@@ -59,3 +59,4 @@ tags
 
 # Vim temp files
 *.un~
+*.swp
