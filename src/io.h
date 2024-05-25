@@ -1,11 +1,17 @@
 #ifndef IO_H
 #define IO_H
+#include <stdlib.h>
 
-#include "data.h"
 #define MAX_DATA_LENGTH 10000
+#define BUFFER_SIZE 1024
 
-/* Returns data length, put data in buffer
- * If there is no more data, return 0 */
-size_t get_data(Data *buffer, size_t buffer_size);
+/* Function to get data
+ * parameters:
+ * (1) void*: points to an allocated buffer
+ * (2) size_t: buffer size
+ * Return size of the data
+ * Return EOF when there is an error or EOF
+ */
+typedef int (*DataGetter)(void *, size_t);
 
 #endif /* ifndef IO_H */

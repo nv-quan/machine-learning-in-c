@@ -1,21 +1,12 @@
 #include "config.h"
-#include <csv.h>
+#include "io.h"
 #include <stdio.h>
-#define BUFFER_SIZE 1024
 
-void stochastic_gradient_descent(Config config) {
-  FILE *fp;
-  struct csv_parser my_csv_parser;
-  size_t i;
-  char buffer[BUFFER_SIZE];
-
-  csv_init(&my_csv_parser, 0);
-  fp = fopen(config.input_path, "r");
-  if (fp == NULL) {
-    fprintf(stderr, "Can't open input %s", config.input_path);
-    return;
+void stochastic_gradient_descent(const Config *config, DataGetter x_getter,
+                                 DataGetter y_getter) {
+  double x[BUFFER_SIZE], y[BUFFER_SIZE];
+  while (x_getter((void *)x, BUFFER_SIZE) != EOF &&
+         y_getter((void *)y, BUFFER_SIZE) != EOF) {
+    exit(0);
   }
-  while ((i = fread(buffer, sizeof(char), BUFFER_SIZE, fp)) > 0) {
-  }
-  /* csv_parse(&my_csv_parser, fp, */
 }

@@ -2,40 +2,30 @@
 #define DATA_H
 #include <stdlib.h>
 
-typedef enum data_type {
-  INT,
-  LONG,
-  FLOAT,
-  DOUBLE
-} DataType;
+/* typedef enum number_type { INT, LONG, FLOAT, DOUBLE };
 
 typedef union number {
   int _int;
   long int _long;
   float _float;
   double _double;
-} Number;
+};
 
-typedef struct data_tag {
-  DataType type;
-  Number value;
-} Data;
+typedef struct number_tag {
+  enum data_type type;
+  union number value;
+} DNumber;
+*/
 
-typedef struct data_list_tag {
-  Number *content;
+/* typedef struct number_array_tag {
+  DNumber *content;
   size_t length;
-}
+} DNumberArray;
 
-typedef struct double_array_tag {
-  double *content;
-  size_t length;
-} DoubleArray;
+DType d_num_type(const DNumber *number);
 
-typedef struct double_2d_array_tag {
-  double **content;
-  size_t width;
-  size_t height;
-} Double2DArray;
-
+ returns -1 on error
+DType d_numarr_type(const DNumberArray *numarr);
+*/
 
 #endif
