@@ -16,12 +16,19 @@ typedef struct computation_graph {
 
 /* Gradient descent config */
 typedef struct grad_desc_config {
-  /* Depending on the batch size, gradient descent will be stochastics or batch
-   */
+  /* Depending on the batch size, gradient descent will be
+   * stochastics or batch. */
   size_t batch_size;
+
+  /* Learning rate */
   double learn_rate;
-  enum comp_graph_type cost_func; /* Cost function */
-  size_t dimension; /* Dimension of theta and input, or number of features */
+
+  /* Cost function */
+  enum comp_graph_type cost_func;
+
+  /* Dimension of theta and input, or number of features */
+  size_t dimension;
+
   /* Loss reporter: takes in epoch count and loss */
   void (*loss_reporter)(int, double);
 } GDConf;

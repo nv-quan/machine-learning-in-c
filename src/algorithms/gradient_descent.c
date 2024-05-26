@@ -9,6 +9,7 @@
 static int sgd();
 static int getdata(DataGetter getter, double *buffer);
 static void init_theta();
+/* Calculate loss function */
 static double calc_loss();
 
 static double *theta;
@@ -40,7 +41,7 @@ static int getdata(DataGetter getter, double *buffer) {
   return getter((void *)buffer, BUFFER_SIZE * sizeof(double));
 }
 
-static double calc_loss() {}
+static double calc_loss() { return 0L; }
 
 int sgd() {
   Point point;
