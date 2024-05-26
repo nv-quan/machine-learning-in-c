@@ -16,24 +16,22 @@ typedef struct computation_graph {
 
 /* Gradient descent config */
 typedef struct grad_desc_config {
-  enum grad_desc_type type;
+  /* Depending on the batch size, gradient descent will be stochastics or batch
+   */
+  size_t batch_size;
   double learn_rate;
-  struct computation_graph cost_func;
-  struct data_source source;
-  size_t dimension; /* Dimension of input, including the intercept */
-} GDConfig;
+  enum comp_graph_type cost_func; /* Cost function */
+  size_t dimension; /* Dimension of theta and input, or number of features */
+} GDConf;
 
-/* Run Stochastic gradient descent algorithm
- * result is an array of double, owner is of caller
- */
-void sgd(PointGetter point_getter, double *result);
 
 /* Run gradient descent to minimize cost function and return result into
  * a double array.
- * config and result are allocated and owned by caller.
+ *
+ * config, loader, and result are allocated and owned by caller.
  *
  * Return 1 when success and 0 when fail.
  */
-int grad_desc(struct grad_desc_config *config, double *result);
+int grad_desc(struct grad_desc_config *config, struct data_loader *loader, double *result);
 
 #endif /* ifndef GRADIENT_DESCENT_H */

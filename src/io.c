@@ -12,4 +12,9 @@ DataGetter csv_file_getter(const char *file_path) {
   }
   while ((i = fread(buffer, sizeof(char), BUFFER_SIZE, fp)) > 0) {
   }
+  return NULL;
+}
+
+int load_data(struct data_loader *loader, size_t size, Point *buffer) {
+  return 0;
 }

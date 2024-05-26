@@ -1,0 +1,86 @@
+[
+  {
+    "arguments": [
+      "/usr/bin/gcc",
+      "-std=c89",
+      "-I./src",
+      "-c",
+      "-o",
+      "build/config.o",
+      "src/config.c"
+    ],
+    "directory": "/Users/quan.nguyen/Code/MachineLearningAlgorithms",
+    "file": "/Users/quan.nguyen/Code/MachineLearningAlgorithms/src/config.c",
+    "output": "/Users/quan.nguyen/Code/MachineLearningAlgorithms/build/config.o"
+  },
+  {
+    "arguments": [
+      "/usr/bin/gcc",
+      "-std=c89",
+      "-I./src",
+      "-c",
+      "-o",
+      "build/data.o",
+      "src/data.c"
+    ],
+    "directory": "/Users/quan.nguyen/Code/MachineLearningAlgorithms",
+    "file": "/Users/quan.nguyen/Code/MachineLearningAlgorithms/src/data.c",
+    "output": "/Users/quan.nguyen/Code/MachineLearningAlgorithms/build/data.o"
+  },
+  {
+    "arguments": [
+      "/usr/bin/gcc",
+      "-std=c89",
+      "-I./src",
+      "-c",
+      "-o",
+      "build/io.o",
+      "src/io.c"
+    ],
+    "directory": "/Users/quan.nguyen/Code/MachineLearningAlgorithms",
+    "file": "/Users/quan.nguyen/Code/MachineLearningAlgorithms/src/io.c",
+    "output": "/Users/quan.nguyen/Code/MachineLearningAlgorithms/build/io.o"
+  },
+  {
+    "arguments": [
+      "/usr/bin/gcc",
+      "-std=c89",
+      "-I./src",
+      "-c",
+      "-o",
+      "build/main.o",
+      "src/main.c"
+    ],
+    "directory": "/Users/quan.nguyen/Code/MachineLearningAlgorithms",
+    "file": "/Users/quan.nguyen/Code/MachineLearningAlgorithms/src/main.c",
+    "output": "/Users/quan.nguyen/Code/MachineLearningAlgorithms/build/main.o"
+  },
+  {
+    "arguments": [
+      "/usr/bin/gcc",
+      "-std=c89",
+      "-I./src",
+      "-c",
+      "-o",
+      "build/utils.o",
+      "src/utils.c"
+    ],
+    "directory": "/Users/quan.nguyen/Code/MachineLearningAlgorithms",
+    "file": "/Users/quan.nguyen/Code/MachineLearningAlgorithms/src/utils.c",
+    "output": "/Users/quan.nguyen/Code/MachineLearningAlgorithms/build/utils.o"
+  },
+  {
+    "arguments": [
+      "/usr/bin/gcc",
+      "-std=c89",
+      "-I./src",
+      "-c",
+      "-o",
+      "build/algorithms/gradient_descent.o",
+      "src/algorithms/gradient_descent.c"
+    ],
+    "directory": "/Users/quan.nguyen/Code/MachineLearningAlgorithms",
+    "file": "/Users/quan.nguyen/Code/MachineLearningAlgorithms/src/algorithms/gradient_descent.c",
+    "output": "/Users/quan.nguyen/Code/MachineLearningAlgorithms/build/algorithms/gradient_descent.o"
+  }
+]
