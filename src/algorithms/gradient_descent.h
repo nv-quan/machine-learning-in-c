@@ -22,8 +22,9 @@ typedef struct grad_desc_config {
   double learn_rate;
   enum comp_graph_type cost_func; /* Cost function */
   size_t dimension; /* Dimension of theta and input, or number of features */
+  /* Loss reporter: takes in epoch count and loss */
+  void (*loss_reporter)(int, double);
 } GDConf;
-
 
 /* Run gradient descent to minimize cost function and return result into
  * a double array.
@@ -32,6 +33,7 @@ typedef struct grad_desc_config {
  *
  * Return 1 when success and 0 when fail.
  */
-int grad_desc(struct grad_desc_config *config, struct data_loader *loader, double *result);
+int grad_desc(struct grad_desc_config *config, struct data_loader *loader,
+              double *result);
 
 #endif /* ifndef GRADIENT_DESCENT_H */

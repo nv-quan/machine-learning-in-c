@@ -7,6 +7,6 @@
 
 void *safe_malloc(size_t size);
 void safe_free(void **pointer);
-void rp_err(char* msg);
+void rp_err(char *msg);
 
 #endif /* ifndef UTILS_H */

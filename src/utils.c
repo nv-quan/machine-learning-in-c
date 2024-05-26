@@ -12,11 +12,10 @@ void *safe_malloc(size_t size) {
 }
 
 void safe_free(void **p) {
-  if (!(*p)) return;
+  if (!(*p))
+    return;
   free(*p);
   *p = NULL;
 }
 
-void rp_err(char* msg) {
-  fprintf(stderr, "%s\n", msg);
-}
+void rp_err(char *msg) { fprintf(stderr, "%s\n", msg); }

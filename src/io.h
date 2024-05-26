@@ -51,7 +51,7 @@ union data_loader_content {
 
 typedef struct data_loader {
   struct data_loader_config conf;
-  FILE *fp; /* File pointer */
+  FILE *fp;                   /* File pointer */
   char err_msg[ERR_MSG_SIZE]; /* Error message when data fail to load */
   /*union data_loader_content content;*/
 } DatLoader;
@@ -65,7 +65,7 @@ typedef struct data_loader {
  * Return amount of data loaded or 0 on error
  * On error, sets err_msg on data_loader
  */
-int load_data(struct data_loader *loader, size_t size, Point* buffer);
+int load_data(struct data_loader *loader, size_t size, Point *buffer);
 
 /* Function to get data
  * parameters:
