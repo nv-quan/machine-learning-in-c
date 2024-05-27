@@ -43,12 +43,16 @@ struct memory_data_loader {
 */
 
 /* TODO: Make memory loader */
+
 /*
 union data_loader_content {
   struct file_data_loader file;
 };
 */
 
+/* Data Loader
+ *
+ */
 typedef struct data_loader {
   struct data_loader_config conf;
   FILE *fp;                   /* File pointer */
@@ -56,16 +60,45 @@ typedef struct data_loader {
   /*union data_loader_content content;*/
 } DatLoader;
 
-/* Function to load data
- * Every call will load data into a buffer (array of Point)
+/* Load data
  *
- * buffer, loader owner is caller, the function will not allocate anything
- * size is the buffer size
+ * Every call will load data into a buffer (array of Point).
+ * [buffer], [loader] is caller's, no allocation inside function.
+ * [size] is the buffer size.
  *
  * Return amount of data loaded or 0 on error
- * On error, sets err_msg on data_loader
+ * On error, set err_msg on data_loader
+ * On success, set err_msg to empty string
  */
 int load_data(struct data_loader *loader, size_t size, Point *buffer);
+
+/* Make data_loader
+ *
+ * Create a new data loader. Must call clear data_loader after use.
+ *
+ * Parameters:
+ *  ld_conf: pointer to a data_loader_config, borrow from caller
+ *  dat_loader: pointer to a data_loader, also borrow from caller
+ *
+ * Return:
+ *  0 on error
+ *  1 on success
+ */
+int make_data_loader(struct data_loader_config *ld_conf,
+                     struct data_loader *dat_loader);
+/* Clear data_loader
+ *
+ * Clear a data loader. This must be called after a data_loader finishes its
+ * job. This function does NOT free dat_loader.
+ *
+ * Parameters:
+ *  dat_loader: pointer to a data_loader, borrow from caller
+ *
+ * Return:
+ *  0 on error
+ *  1 on success
+ */
+int clear_data_loader(struct data_loader *dat_loader);
 
 /* Function to get data
  * parameters:

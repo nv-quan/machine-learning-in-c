@@ -25,7 +25,7 @@ OBJ = $(SRC:$(SRCDIR)/%.c=$(BUILDDIR)/%.o)
 DEPS = $(OBJ:.o=.d)
 
 # Default target
-all: format $(TARGET) tags cscope
+all: format tags cscope $(TARGET) 
 
 # Linking
 $(TARGET): $(OBJ)

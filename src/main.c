@@ -9,7 +9,7 @@ int main(void) {
   /* Data buffer[MAX_DATA_LENGTH]; */
   switch (config.algorithm) {
   case STOCHASTIC_GRADIENT_DESCENT:
-    // sgd(config);
+    /* sgd(config); */
     break;
   case BATCH_GRADIENT_DESCENT:
     break;

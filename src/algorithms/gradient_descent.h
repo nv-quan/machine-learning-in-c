@@ -26,7 +26,7 @@ typedef struct grad_desc_config {
   /* Cost function */
   enum comp_graph_type cost_func;
 
-  /* Dimension of theta and input, or number of features */
+  /* Dimension of theta and input, or number of features + 1*/
   size_t dimension;
 
   /* Loss reporter: takes in epoch count and loss */
@@ -36,11 +36,11 @@ typedef struct grad_desc_config {
 /* Run gradient descent to minimize cost function and return result into
  * a double array.
  *
- * config, loader, and result are allocated and owned by caller.
+ * config, ld_conf, and result are allocated and owned by caller.
  *
  * Return 1 when success and 0 when fail.
  */
-int grad_desc(struct grad_desc_config *config, struct data_loader *loader,
-              double *result);
+int grad_desc(struct grad_desc_config *config,
+              struct data_loader_config *ld_conf, double *result);
 
 #endif /* ifndef GRADIENT_DESCENT_H */
