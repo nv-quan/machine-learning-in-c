@@ -2,6 +2,7 @@
 #define IO_H
 
 #include "data.h"
+#include <csv.h>
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -54,8 +55,8 @@ union data_loader_content {
  *
  */
 typedef struct data_loader {
-  struct data_loader_config conf;
   FILE *fp;                   /* File pointer */
+  struct csv_parser *csv_prs; /* CSV Parser struct */
   char err_msg[ERR_MSG_SIZE]; /* Error message when data fail to load */
   /*union data_loader_content content;*/
 } DatLoader;
@@ -74,29 +75,32 @@ int load_data(struct data_loader *loader, size_t size, Point *buffer);
 
 /* Make data_loader
  *
- * Create a new data loader. Must call clear data_loader after use.
+ * Create a new data loader. This function will allocate a struct csv_parser.
+ * Before freeing data_loader, clear_data_loader must be called to clear the
+ * struct. However if the functions returns error, then no memory will be
+ * allocated.
  *
  * Parameters:
  *  ld_conf: pointer to a data_loader_config, borrow from caller
  *  dat_loader: pointer to a data_loader, also borrow from caller
  *
  * Return:
- *  0 on error
- *  1 on success
+ *  -1 on error
+ *  0 on success
  */
 int make_data_loader(struct data_loader_config *ld_conf,
                      struct data_loader *dat_loader);
 /* Clear data_loader
  *
  * Clear a data loader. This must be called after a data_loader finishes its
- * job. This function does NOT free dat_loader.
+ * job. This function does NOT free [dat_loader].
  *
  * Parameters:
  *  dat_loader: pointer to a data_loader, borrow from caller
  *
  * Return:
- *  0 on error
- *  1 on success
+ *  -1 on error
+ *  0 on success
  */
 int clear_data_loader(struct data_loader *dat_loader);
 

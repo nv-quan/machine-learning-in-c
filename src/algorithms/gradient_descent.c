@@ -49,7 +49,7 @@ int grad_desc(GDConf *gd_conf, struct data_loader_config *ld_conf,
   if (config->batch_size == 1) {
     /* Stochastic gradient descent */
     dat_loader = (struct data_loader *)safe_malloc(sizeof(struct data_loader));
-    while (make_data_loader(loader_conf, dat_loader) != 0 &&
+    while (make_data_loader(loader_conf, dat_loader) == 0 &&
            sgd(dat_loader) != 0 && epoch++ < max_epoch) {
       if (config->loss_reporter)
         config->loss_reporter(epoch - 1, calc_loss(&loss_result));
@@ -74,7 +74,7 @@ static int calc_loss(double *result) {
   double dot_result;
 
   dat_loader = (struct data_loader *)safe_malloc(sizeof(struct data_loader));
-  if (make_data_loader(loader_conf, dat_loader) == 0) {
+  if (make_data_loader(loader_conf, dat_loader) != 0) {
     rp_err("Calculate loss error, can't make data loader");
     safe_free((void **)&dat_loader);
     return FALSE;
