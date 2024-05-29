@@ -16,9 +16,7 @@ DataGetter csv_file_getter(const char *file_path) {
   return NULL;
 }
 
-int load_data(struct data_loader *loader, size_t size, Point *buffer) {
-  return 0;
-}
+int load_data(struct data_loader *loader, size_t size, Point *buffer) {}
 
 int make_data_loader(struct data_loader_config *ld_conf,
                      struct data_loader *dat_loader) {
@@ -45,10 +43,10 @@ failed:
 }
 
 int clear_data_loader(struct data_loader *dat_loader) {
-  if (!(dat_loader->fp))
-    return -1;
-  if (fclose(dat_loader->fp) != 0)
-    return -1;
-  safe_free((void **)&dat_loader->csv_prs);
-  return 0;
+  int retval = 0;
+  if (!(dat_loader->fp) || fclose(dat_loader->fp))
+    retval = -1;
+  csv_fini(dat_loader->csv_prs, NULL, NULL, NULL);
+  csv_free(dat_loader->csv_prs);
+  return retval;
 }

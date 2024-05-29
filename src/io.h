@@ -67,7 +67,7 @@ typedef struct data_loader {
  * [buffer], [loader] is caller's, no allocation inside function.
  * [size] is the buffer size.
  *
- * Return amount of data loaded or 0 on error
+ * Return amount of data loaded or -1 on error
  * On error, set err_msg on data_loader
  * On success, set err_msg to empty string
  */
