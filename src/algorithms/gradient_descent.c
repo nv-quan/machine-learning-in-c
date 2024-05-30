@@ -9,8 +9,8 @@
 
 /* Run Stochastic gradient descent algorithm
  *
- * Run 1 epoch (1 pass) through all training examples
- * loader is borrowed from caller
+ * Run 1 epoch (1 pass) through all training examples loader is borrowed from
+ * caller
  */
 static int sgd(struct data_loader *loader);
 static int getdata(DataGetter getter, double *buffer);
@@ -20,9 +20,7 @@ static void init_theta();
  *
  * Save result into [result]
  *
- * Return
- *  0 on error
- *  1 on success
+ * Return 0 on error, and 1 on success
  */
 static int calc_loss(double *result);
 
@@ -66,7 +64,7 @@ static int getdata(DataGetter getter, double *buffer) {
 
 static int calc_loss(double *result) {
   int i;
-  int dat_size;
+  size_t dat_size;
   double loss = 0;
   struct data_loader *dat_loader;
   Point buffer[MAX_BUFFER_SIZE];
@@ -80,7 +78,8 @@ static int calc_loss(double *result) {
     retval = FALSE;
     goto cleanup1;
   }
-  while ((dat_size = load_data(dat_loader, MAX_BUFFER_SIZE, buffer)) > 0) {
+  while (!ld_err(dat_loader) &&
+         (dat_size = load_data(dat_loader, MAX_BUFFER_SIZE, buffer)) > 0) {
     for (i = 0; i < dat_size; ++i) {
       curr = buffer + i; /* Borrow */
       if (dot_product(&dot_result, curr->x, theta, curr->x_length) == 0) {
@@ -91,9 +90,8 @@ static int calc_loss(double *result) {
       loss += (dot_result - curr->y) * (dot_result - curr->y);
     }
   }
-  if (dat_size < 0) {
-    if (dat_loader->err_msg[0] != '\0')
-      rp_err(dat_loader->err_msg);
+  if (ld_err(dat_loader)) {
+    rp_err("calc_loss: error when load data");
     retval = FALSE;
     goto cleanup2;
   }
@@ -112,12 +110,12 @@ int sgd(struct data_loader *loader) {
   double coeff;
   size_t dim = config->dimension;
   double *temp = (double *)safe_malloc(dim * sizeof(double)); /* owner */
-  int size = 0;
+  size_t size = 0;
   int retval = 0;
 
   point.x_length = dim;
   point.x = (double *)safe_malloc(dim * sizeof(double));
-  while ((size = load_data(loader, 1, &point)) > 0) {
+  while (!(ld_err(loader)) && (size = load_data(loader, 1, &point)) > 0) {
     if (dot_product(point.x, theta, &coeff, dim) == 0) {
       rp_err("SGD error, can't do dot product");
       retval = FALSE;
@@ -131,10 +129,8 @@ int sgd(struct data_loader *loader) {
     }
     vec_add(theta, theta, temp, dim);
   }
-  if (size < 0) {
-    rp_err("SGD: can't load data");
-    if (loader->err_msg[0] != '\0')
-      rp_err(loader->err_msg);
+  if (ld_err(loader)) {
+    rp_err("SGD load data error");
     retval = FALSE;
     goto cleanup;
   }

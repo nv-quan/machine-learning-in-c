@@ -18,6 +18,8 @@ enum data_loader_type {
   DFILE /* File */
 };
 
+enum loader_err { CSV_ERR, FILE_ERR };
+
 /* TODO: Make memory data loader */
 typedef struct data_loader_config {
   /* enum data_loader_type type; */
@@ -57,21 +59,25 @@ union data_loader_content {
 typedef struct data_loader {
   FILE *fp;                   /* File pointer */
   struct csv_parser *csv_prs; /* CSV Parser struct */
-  char err_msg[ERR_MSG_SIZE]; /* Error message when data fail to load */
+  enum loader_err err;        /* Error code */
   /*union data_loader_content content;*/
 } DatLoader;
+
+/* Check if data_loader has error
+ * Return non-zero if true (returns error code)
+ */
+int ld_err(struct data_loader *loader);
 
 /* Load data
  *
  * Every call will load data into a buffer (array of Point).
  * [buffer], [loader] is caller's, no allocation inside function.
- * [size] is the buffer size.
+ * [nsize] is the buffer size (number of element).
  *
- * Return amount of data loaded or -1 on error
- * On error, set err_msg on data_loader
- * On success, set err_msg to empty string
+ * Return amount of data loaded (in number of element).
+ * When return value is 0, ld_err(loader) indicates if error happened.
  */
-int load_data(struct data_loader *loader, size_t size, Point *buffer);
+size_t load_data(struct data_loader *loader, size_t nsize, Point *buffer);
 
 /* Make data_loader
  *
