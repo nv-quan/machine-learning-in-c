@@ -46,25 +46,20 @@ tags: $(SRC) $(HDR)
 
 # Generate cscope files
 cscope: cscope.files
-	@echo "Generating cscope files..."
 	@cscope -b -q -k
 
 cscope.files: $(SRC) $(HDR)
-	@echo "Updating cscope.files..."
 	@echo $(SRC) $(HDR) | tr ' ' '\n' > cscope.files
 
 # Format code
 format: $(SRC) $(HDR)
 	@if command -v clang-format >/dev/null 2>&1; then \
-		echo "Running clang-format..."; \
 		mkdir -p $(BUILDDIR); \
 		if [ -z "$$(ls -A $(BUILDDIR))" ]; then \
-			echo "Formatting all files (first run)..."; \
 			clang-format -i $(SRC) $(HDR); \
 		else \
 			for file in $(SRC) $(HDR); do \
 				if [ "$$(find "$${file}" -newer $(BUILDDIR))" ]; then \
-					echo "Formatting $${file}"; \
 					clang-format -i "$${file}"; \
 				fi; \
 			done \

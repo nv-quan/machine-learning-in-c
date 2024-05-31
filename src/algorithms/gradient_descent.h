@@ -40,7 +40,6 @@ typedef struct grad_desc_config {
  *
  * Return 1 when success and 0 when fail.
  */
-int grad_desc(struct grad_desc_config *config,
-              struct data_loader_config *ld_conf, double *result);
+int grad_desc(GDConf *config, DLConf *dl_conf, double *result);
 
 #endif /* ifndef GRADIENT_DESCENT_H */

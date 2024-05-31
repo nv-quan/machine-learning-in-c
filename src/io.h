@@ -9,6 +9,7 @@
 #define BUFFER_SIZE 1024
 #define MAX_FILE_PATH_LENGTH 4096
 #define ERR_MSG_SIZE 1024
+#define MAX_FEATURE_SIZE 1000
 
 /*enum source_type { CSV_FILE };
  *enum data_type { POINT };
@@ -18,7 +19,7 @@ enum data_loader_type {
   DFILE /* File */
 };
 
-enum loader_err { CSV_ERR, FILE_ERR };
+enum loader_err { NOERR, CSV_ERR, FILE_ERR };
 
 /* TODO: Make memory data loader */
 typedef struct data_loader_config {
@@ -26,6 +27,15 @@ typedef struct data_loader_config {
 
   /* File path */
   char file_path[MAX_FILE_PATH_LENGTH];
+
+  /* Dimension of X */
+  size_t x_dim;
+
+  /* Columns from table for x (features) */
+  int x_cols[MAX_FEATURE_SIZE];
+
+  /* Column from table for y */
+  int y_col;
 } DLConf;
 
 /* File data loader
@@ -57,16 +67,23 @@ union data_loader_content {
  *
  */
 typedef struct data_loader {
-  FILE *fp;                   /* File pointer */
-  struct csv_parser *csv_prs; /* CSV Parser struct */
-  enum loader_err err;        /* Error code */
-  /*union data_loader_content content;*/
+  /* File pointer */
+  FILE *fp;
+
+  /* CSV Parser struct */
+  struct csv_parser *csv_prs;
+
+  /* Error code */
+  enum loader_err err;
+
+  /* Data loader config */
+  DLConf dl_conf;
 } DatLoader;
 
 /* Check if data_loader has error
  * Return non-zero if true (returns error code)
  */
-int ld_err(struct data_loader *loader);
+int ld_err(DatLoader *loader);
 
 /* Load data
  *
@@ -77,38 +94,31 @@ int ld_err(struct data_loader *loader);
  * Return amount of data loaded (in number of element).
  * When return value is 0, ld_err(loader) indicates if error happened.
  */
-size_t load_data(struct data_loader *loader, size_t nsize, Point *buffer);
+size_t load_data(DatLoader *loader, size_t nsize, Point *buffer);
 
 /* Make data_loader
  *
- * Create a new data loader. This function will allocate a struct csv_parser.
- * Before freeing data_loader, clear_data_loader must be called to clear the
- * struct. However if the functions returns error, then no memory will be
- * allocated.
+ * Create (allocate) a new data loader. destroy_dat_loader must be called after
+ * done using.
  *
  * Parameters:
- *  ld_conf: pointer to a data_loader_config, borrow from caller
- *  dat_loader: pointer to a data_loader, also borrow from caller
+ *  dl_conf: pointer to a data_loader_config, borrow from caller
  *
  * Return:
- *  -1 on error
- *  0 on success
+ *   NULL on error
+ *   pointer to the new data_loader on success
  */
-int make_data_loader(struct data_loader_config *ld_conf,
-                     struct data_loader *dat_loader);
+DatLoader *make_data_loader(DLConf *dl_conf);
+
 /* Clear data_loader
  *
- * Clear a data loader. This must be called after a data_loader finishes its
- * job. This function does NOT free [dat_loader].
+ * Clear a data loader and consume it. This must be called after
+ * a data_loader finishes its job.
  *
  * Parameters:
  *  dat_loader: pointer to a data_loader, borrow from caller
- *
- * Return:
- *  -1 on error
- *  0 on success
  */
-int clear_data_loader(struct data_loader *dat_loader);
+void destroy_dat_loader(DatLoader *dat_loader);
 
 /* Function to get data
  * parameters:

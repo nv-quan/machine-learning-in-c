@@ -12,7 +12,7 @@
  * Run 1 epoch (1 pass) through all training examples loader is borrowed from
  * caller
  */
-static int sgd(struct data_loader *loader);
+static int sgd(DatLoader *loader);
 static int getdata(DataGetter getter, double *buffer);
 static void init_theta();
 
@@ -26,19 +26,23 @@ static int calc_loss(double *result);
 
 static double *theta;
 static GDConf *config;
-static struct data_loader_config *loader_conf;
+static DLConf *loader_conf;
 
-int grad_desc(GDConf *gd_conf, struct data_loader_config *ld_conf,
-              double *result) {
+/* TODO: Refactor to put ld_conf to gd_conf because x_dim and dimension overlaps
+ */
+int grad_desc(GDConf *gd_conf, DLConf *ld_conf, double *result) {
   int epoch = 0;
   int max_epoch = 150;
   int current_loss;
   double loss_result;
-  struct data_loader *dat_loader;
+  DatLoader *dat_loader;
 
-  theta = result;        /* borrow */
-  config = gd_conf;      /* borrow */
-  loader_conf = ld_conf; /* borrow */
+  /* Borrow pointers. All of the following pointers have lifetimes equivalent to
+   * grad_desc */
+  theta = result;
+  config = gd_conf;
+  loader_conf = ld_conf;
+
   init_theta();
   if (config->batch_size == 0) {
     rp_err("Gradient descent error: 0 batch size");
@@ -46,14 +50,12 @@ int grad_desc(GDConf *gd_conf, struct data_loader_config *ld_conf,
   }
   if (config->batch_size == 1) {
     /* Stochastic gradient descent */
-    dat_loader = (struct data_loader *)safe_malloc(sizeof(struct data_loader));
-    while (make_data_loader(loader_conf, dat_loader) == 0 &&
+    while ((dat_loader = make_data_loader(loader_conf)) != 0 &&
            sgd(dat_loader) != 0 && epoch++ < max_epoch) {
       if (config->loss_reporter)
         config->loss_reporter(epoch - 1, calc_loss(&loss_result));
-      clear_data_loader(dat_loader);
+      destroy_dat_loader(dat_loader);
     };
-    safe_free((void **)&dat_loader);
   }
   return TRUE;
 }
@@ -66,17 +68,15 @@ static int calc_loss(double *result) {
   int i;
   size_t dat_size;
   double loss = 0;
-  struct data_loader *dat_loader;
+  DatLoader *dat_loader;
   Point buffer[MAX_BUFFER_SIZE];
   Point *curr;
   double dot_result;
   int retval = TRUE;
 
-  dat_loader = (struct data_loader *)safe_malloc(sizeof(struct data_loader));
-  if (make_data_loader(loader_conf, dat_loader) != 0) {
+  if ((dat_loader = make_data_loader(loader_conf)) == NULL) {
     rp_err("Calculate loss error, can't make data loader");
-    retval = FALSE;
-    goto cleanup1;
+    return FALSE; /* No need to cleanup */
   }
   while (!ld_err(dat_loader) &&
          (dat_size = load_data(dat_loader, MAX_BUFFER_SIZE, buffer)) > 0) {
@@ -85,7 +85,7 @@ static int calc_loss(double *result) {
       if (dot_product(&dot_result, curr->x, theta, curr->x_length) == 0) {
         rp_err("SGD error, can't do dot product");
         retval = FALSE;
-        goto cleanup2;
+        goto cleanup;
       }
       loss += (dot_result - curr->y) * (dot_result - curr->y);
     }
@@ -93,19 +93,17 @@ static int calc_loss(double *result) {
   if (ld_err(dat_loader)) {
     rp_err("calc_loss: error when load data");
     retval = FALSE;
-    goto cleanup2;
+    goto cleanup;
   }
   *result = loss / 2;
   retval = TRUE;
 
-cleanup2:
-  clear_data_loader(dat_loader);
-cleanup1:
-  safe_free((void **)&dat_loader);
+cleanup:
+  destroy_dat_loader(dat_loader);
   return retval;
 }
 
-int sgd(struct data_loader *loader) {
+int sgd(DatLoader *loader) {
   Point point;
   double coeff;
   size_t dim = config->dimension;
