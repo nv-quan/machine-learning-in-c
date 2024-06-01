@@ -5,17 +5,34 @@
 #include <string.h>
 
 typedef struct csv_context {
+  /* CSV field idx in a row */
   int field_idx;
+
+  /* CSV row idx, including heading row */
   int row_idx;
-  Point *point_buf; /* Buffer to save current point */
+
+  /* Current point index */
+  int point_idx;
+
+  /* Maximum point count stored by point_buF */
+  int point_buf_len;
+
+  /* Buffer to save current point */
+  Point *point_buf;
 } CsvCtx;
 
 /* Callback for each csv field */
 static void csv_field_read(void *dat, size_t len, void *custom);
+
 /* Callback for each end of row */
 static void csv_eor(int c, void *custom);
 
-static void init_csv_ctx(CsvCtx *ctx);
+/* Parse buffer into csv until either the whole buffer is parsed or maximum
+ * number of points are saved into ctx
+ */
+static size_t parse_buf(DatLoader *loader, char *buf, size_t len, CsvCtx *ctx);
+
+static void init_csv_ctx(CsvCtx *ctx, Point *point_buf, int point_buf_len);
 
 DataGetter csv_file_getter(const char *file_path) {
   static FILE *fp;
@@ -30,27 +47,47 @@ DataGetter csv_file_getter(const char *file_path) {
   return NULL;
 }
 
-size_t load_data(DatLoader *loader, size_t nsize, Point *buffer) {
-  size_t sz_read, sz_csv;
-  static CsvCtx ctx;
-  char read_buf[BUFFER_SIZE];
-  size_t buf_len;
+static int is_context_full(CsvCtx *context) {
+  return context->point_idx >= context->point_buf_len; 
+}
 
-  init_csv_ctx(&ctx);
-  sz_read = fread(read_buf, sizeof(char), BUFFER_SIZE, loader->fp);
-  if (sz_read == 0) {
-    if (ferror(loader->fp))
-      loader->err = FILE_ERR;
-    return 0;
+size_t load_data(DatLoader *loader, size_t nsize, Point *buffer) {
+  size_t sz_read, sz_csv, total_sz_read = 0; /* bytes count */
+  size_t ch_sz = sizeof(char);
+  CsvCtx ctx;
+  char read_buf[BUFFER_SIZE];
+
+  init_csv_ctx(&ctx, buffer, nsize); /* buffer lifetime is this function */
+  while (!is_context_full(ctx) && sz_read = fread(read_buf, ch_sz, BUFFER_SIZE, loader->fp)) {
+    total_sz_read += sz_read; 
+    if (parse_buf(loader, read_buf, sz_read, &ctx) == 0) {
+      loader->err = CSV_ERR;
+      total_sz_read -= sz_read;
+      /* It's an undefined behaviour to call load_data after this point so we don't
+       * need to care about loader->fp position
+       */
+      break;
+    }
   }
-  buf_len = sz_read * sizeof(char);
-  sz_csv = csv_parse(loader->csv_prs, read_buf, buf_len, csv_field_read,
-                     csv_eor, (void *)&ctx);
-  if (sz_csv < buf_len) { /* Error has occured */
-    loader->err = CSV_ERR;
-    return 0;
+  if (sz_read == 0 && ferror(loader->fp)) {
+      loader->err = FILE_ERR;
   }
   return sz_read;
+}
+
+static size_t parse_buf(DatLoader *loader, char *buf, size_t len, CsvCtx *ctx) {
+  struct csv_parser *parser = loader->csv_prs;
+  void* vctx = (void*) ctx;
+  int i;
+
+  for (i = 0; i < len && !is_context_full(ctx); i++) {
+    if (csv_parse(parser, buf + i, 1, csv_field_read, csv_eor, vctx) < 1) {
+      /* Error has occured */
+      loader->err = CSV_ERR;
+      break;
+    }
+  }
+  return i;
 }
 
 DatLoader *make_data_loader(DLConf *dl_conf) {
@@ -68,7 +105,7 @@ DatLoader *make_data_loader(DLConf *dl_conf) {
   }
   if ((fp = fopen(dl_conf->file_path, "r")) == NULL) {
     fprintf(stderr, "make_data_loader: Can't open file %s\n",
-            dl_conf->file_path);
+        dl_conf->file_path);
     goto failed;
   }
   dat_loader->fp = fp;           /* Transfer ownership */
@@ -92,6 +129,14 @@ void destroy_dat_loader(DatLoader *dat_loader) {
 }
 
 int ld_err(DatLoader *loader) { return loader->err; }
+
+static void init_csv_ctx(CsvCtx *ctx, Point *point_buf, int point_buf_len) {
+  ctx.field_idx = 0;
+  ctx.row_idx = 0;
+  ctx.point_idx = 0;
+  ctx.point_buff_len = point_buff_len;
+  ctx.point_buf = point_buf;
+}
 
 static void csv_field_read(void *dat, size_t len, void *custom) { CsvCtx ctx; }
 

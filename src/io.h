@@ -92,7 +92,9 @@ int ld_err(DatLoader *loader);
  * [nsize] is the buffer size (number of element).
  *
  * Return amount of data loaded (in number of element).
- * When return value is 0, ld_err(loader) indicates if error happened.
+ * ld_err(loader) indicates if error happened.
+ * After error happened, attempting to call load_data will result in undefined
+ * behaviours.
  */
 size_t load_data(DatLoader *loader, size_t nsize, Point *buffer);
 
