@@ -56,11 +56,11 @@ format: $(SRC) $(HDR)
 	@if command -v clang-format >/dev/null 2>&1; then \
 		mkdir -p $(BUILDDIR); \
 		if [ -z "$$(ls -A $(BUILDDIR))" ]; then \
-			clang-format -i $(SRC) $(HDR); \
+			clang-format -i --style=file $(SRC) $(HDR); \
 		else \
 			for file in $(SRC) $(HDR); do \
 				if [ "$$(find "$${file}" -newer $(BUILDDIR))" ]; then \
-					clang-format -i "$${file}"; \
+					clang-format -i --style=file "$${file}"; \
 				fi; \
 			done \
 		fi \

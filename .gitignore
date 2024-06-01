@@ -63,3 +63,6 @@ tags
 
 # Cscope
 cscope.files
+
+# Data files
+data/*
