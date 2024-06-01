@@ -1,15 +1,15 @@
 #ifndef IO_H
 #define IO_H
 
-#include "data.h"
 #include <csv.h>
 #include <stdio.h>
 #include <stdlib.h>
 
+#include "data.h"
+
 #define BUFFER_SIZE 1024
 #define MAX_FILE_PATH_LENGTH 4096
 #define ERR_MSG_SIZE 1024
-#define MAX_FEATURE_SIZE 1000
 
 /*enum source_type { CSV_FILE };
  *enum data_type { POINT };
@@ -23,19 +23,11 @@ enum loader_err { NOERR, CSV_ERR, FILE_ERR };
 
 /* TODO: Make memory data loader */
 typedef struct data_loader_config {
-  /* enum data_loader_type type; */
-
-  /* File path */
-  char file_path[MAX_FILE_PATH_LENGTH];
-
-  /* Dimension of X */
-  size_t x_dim;
-
-  /* Columns from table for x (features) */
-  int x_cols[MAX_FEATURE_SIZE];
-
-  /* Column from table for y */
-  int y_col;
+  char file_path[MAX_FILE_PATH_LENGTH]; /* File path */
+  size_t x_dim;                         /* Dimension of X */
+  int x_cols[MAX_FEATURE_SIZE]; /* Columns from table for x (features) */
+  int y_col;                    /* Column from table for y */
+  int has_header;               /* 1 if the csv file has header, 0 if not */
 } DLConf;
 
 /* File data loader

@@ -1,4 +1,5 @@
 #include "algorithms/gradient_descent.h"
+
 #include "config.h"
 #include "custom_math.h"
 #include "data.h"
@@ -28,17 +29,19 @@ static double *theta;
 static GDConf *config;
 static DLConf *loader_conf;
 
-/* TODO: Refactor to put ld_conf to gd_conf because x_dim and dimension overlaps
+/* TODO: Refactor to put ld_conf to gd_conf because x_dim and dimension
+ * overlaps
  */
-int grad_desc(GDConf *gd_conf, DLConf *ld_conf, double *result) {
+int
+grad_desc(GDConf *gd_conf, DLConf *ld_conf, double *result) {
   int epoch = 0;
   int max_epoch = 150;
   int current_loss;
   double loss_result;
   DatLoader *dat_loader;
 
-  /* Borrow pointers. All of the following pointers have lifetimes equivalent to
-   * grad_desc */
+  /* Borrow pointers. All of the following pointers have lifetimes equivalent
+   * to grad_desc */
   theta = result;
   config = gd_conf;
   loader_conf = ld_conf;
@@ -60,11 +63,13 @@ int grad_desc(GDConf *gd_conf, DLConf *ld_conf, double *result) {
   return TRUE;
 }
 
-static int getdata(DataGetter getter, double *buffer) {
+static int
+getdata(DataGetter getter, double *buffer) {
   return getter((void *)buffer, BUFFER_SIZE * sizeof(double));
 }
 
-static int calc_loss(double *result) {
+static int
+calc_loss(double *result) {
   int i;
   size_t dat_size;
   double loss = 0;
@@ -103,7 +108,19 @@ cleanup:
   return retval;
 }
 
-int sgd(DatLoader *loader) {
+void
+init_point(Point *point, size_t dim) {
+  int i;
+
+  point->x_length = dim;
+  point->y = 0;
+  for (i = 0; i < dim; ++i) {
+    point->x[i] = 0;
+  }
+}
+
+int
+sgd(DatLoader *loader) {
   Point point;
   double coeff;
   size_t dim = config->dimension;
@@ -111,8 +128,7 @@ int sgd(DatLoader *loader) {
   size_t size = 0;
   int retval = 0;
 
-  point.x_length = dim;
-  point.x = (double *)safe_malloc(dim * sizeof(double));
+  init_point(&point, dim);
   while (!(ld_err(loader)) && (size = load_data(loader, 1, &point)) > 0) {
     if (dot_product(point.x, theta, &coeff, dim) == 0) {
       rp_err("SGD error, can't do dot product");
@@ -140,7 +156,8 @@ cleanup:
   return retval;
 }
 
-void init_theta() {
+void
+init_theta() {
   int i;
   /* Zero initialization, will revisit later */
   for (i = 0; i < config->dimension; i++) {

@@ -1,6 +1,8 @@
 #include "data.h"
-#include "utils.h"
+
 #include <stdlib.h>
+
+#include "utils.h"
 
 /*Data makeData(double x, double y) {
   Data temp;
