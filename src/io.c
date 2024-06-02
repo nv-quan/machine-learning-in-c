@@ -8,18 +8,19 @@
 #include "utils.h"
 
 typedef struct csv_context {
-  int begin_row;  /* Row index where data start, normally 1 if csv has header
-                     and 0 if not */
-  int field_idx;  /* CSV field idx in a row */
-  int row_idx;    /* CSV row idx, including the header */
-  int point_idx;  /* Current point index */
-  Point *points;  /* Point to an array of points */
-  int points_len; /* Length of points array */
+  int begin_row;     /* Row index where data start, normally 1 if csv has header
+                        and 0 if not */
+  int field_idx;     /* CSV field idx in a row */
+  int row_idx;       /* CSV row idx, including the header */
+  int point_idx;     /* Current point index */
+  Point *points;     /* Point to an array of points */
+  int point_changed; /* 1 if current point is changed, 0 if not */
+  int points_len;    /* Length of points array */
   DatLoader *loader;
 } CsvCtx;
 
 /* Callback for each end of field */
-static void csv_eofd(void *dat, size_t len, void *custom);
+static void csv_eofld(void *dat, size_t len, void *custom);
 
 /* Callback for each end of row */
 static void csv_eor(int c, void *custom);
@@ -93,7 +94,7 @@ parse_buf(DatLoader *loader, char *buf, size_t len, CsvCtx *ctx) {
   int i;
 
   for (i = 0; i < len && !is_ctx_full(ctx); i++) {
-    if (csv_parse(parser, buf + i, 1, csv_eofd, csv_eor, vctx) < 1) {
+    if (csv_parse(parser, buf + i, 1, csv_eofld, csv_eor, vctx) < 1) {
       /* Error has occured */
       loader->err = CSV_ERR;
       break;
@@ -136,7 +137,7 @@ failed:
 void
 destroy_dat_loader(DatLoader *dat_loader) {
   if (dat_loader->fp) fclose(dat_loader->fp);
-  csv_fini(dat_loader->csv_prs, csv_eofd, csv_eor, NULL);
+  csv_fini(dat_loader->csv_prs, csv_eofld, csv_eor, NULL);
   csv_free(dat_loader->csv_prs);
   safe_free((void **)&dat_loader->csv_prs);
 }
@@ -155,31 +156,42 @@ init_csv_ctx(CsvCtx *ctx, Point *points, int len, DatLoader *loader) {
   ctx->points_len = len;
   ctx->points = points;
   ctx->loader = loader;
+  ctx->point_changed = 0;
 }
 
 static void
-csv_eofd(void *dat, size_t len, void *custom) {
-  CsvCtx *ctx = (CsvCtx *)custom;
-  char *str = (char *)dat;
-  char *endStr;
-  double value = strtod(str, &endStr);
-  DLConf *loader_conf = &ctx->loader->dl_conf;
+csv_eofld(void *dat, size_t len, void *custom) {
+  CsvCtx *ctx;
+  double value;
+  DLConf *loader_conf;
+  int cur_field_idx;
   int i;
 
+  ctx = (CsvCtx *)custom;
+  cur_field_idx = ctx->field_idx++;
+
   if (is_ctx_full(ctx)) {
-    rp_err("csv_eofd called when ctx is full");
+    rp_err("csv_eofld called when ctx is full");
     /* Just return and run as normal, but this shouldn't happen */
     return;
   }
-  if (ctx->field_idx == loader_conf->y_col) {
+  if (ctx->row_idx <= ctx->begin_row) return;
+
+  loader_conf = &ctx->loader->dl_conf;
+  /* TODO: Do strtod error handling */
+  value = strtod((char *)dat, NULL);
+
+  if (cur_field_idx == loader_conf->y_col) {
     ctx->points[ctx->point_idx].y = value;
+    ctx->point_changed = TRUE;
+    return;
   }
   for (i = 0; i < loader_conf->x_dim; ++i) {
-    if (ctx->field_idx == loader_conf->x_cols[i]) {
-      ctx->points[ctx->point_idx].x[i] = value;
-    }
+    if (cur_field_idx != loader_conf->x_cols[i]) continue;
+    ctx->points[ctx->point_idx].x[i] = value;
+    ctx->point_changed = TRUE;
+    break;
   }
-  ctx->field_idx++;
 }
 
 static void
@@ -187,6 +199,7 @@ csv_eor(int c, void *custom) {
   CsvCtx *ctx = (CsvCtx *)custom;
   ctx->field_idx = 0;
   ctx->row_idx++;
-  ctx->point_idx++;
+  if (ctx->point_changed) ctx->point_idx++;
+  ctx->point_changed = FALSE;
   return;
 }

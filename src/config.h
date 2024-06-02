@@ -1,14 +1,21 @@
 #ifndef CONFIG_H
 #define CONFIG_H
-#define MAX_PATH_LENGTH 4096
 
-enum Algorithm { STOCHASTIC_GRADIENT_DESCENT, BATCH_GRADIENT_DESCENT };
+/* Use this file to define config for the program to run */
 
-typedef struct config_tag {
-  enum Algorithm algorithm;
-  char input_path[MAX_PATH_LENGTH];
-} Config;
+/* Maximum size for path length character array */
+#define CF_PATH_LEN 1000
+/* Input csv file path */
+#define CF_CSV_PATH "data/Real estate.csv"
+/* Feature dimension */
+#define CF_FEAT_DIM 3
+/* Learning rate */
+#define CF_LRATE 0.1
+/* Batch size */
+#define CF_BATCH_SZ 1
 
-Config get_config(void);
+#define CF_FEAT_COLS {2, 3, 4}
+
+#define CF_OUTPUT_COL 7
 
 #endif /* ifndef CONFIG_H */

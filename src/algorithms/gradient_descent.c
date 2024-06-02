@@ -6,15 +6,12 @@
 #include "io.h"
 #include "utils.h"
 
-#define MAX_BUFFER_SIZE 1024
-
 /* Run Stochastic gradient descent algorithm
  *
  * Run 1 epoch (1 pass) through all training examples loader is borrowed from
  * caller
  */
 static int sgd(DatLoader *loader);
-static int getdata(DataGetter getter, double *buffer);
 static void init_theta();
 
 /* Calculate loss function
@@ -38,7 +35,7 @@ grad_desc(GDConf *gd_conf, DLConf *ld_conf, double *result) {
   int max_epoch = 150;
   int current_loss;
   double loss_result;
-  DatLoader *dat_loader;
+  DatLoader *loader;
 
   /* Borrow pointers. All of the following pointers have lifetimes equivalent
    * to grad_desc */
@@ -53,58 +50,46 @@ grad_desc(GDConf *gd_conf, DLConf *ld_conf, double *result) {
   }
   if (config->batch_size == 1) {
     /* Stochastic gradient descent */
-    while ((dat_loader = make_data_loader(loader_conf)) != 0 &&
-           sgd(dat_loader) != 0 && epoch++ < max_epoch) {
+    while ((loader = make_data_loader(ld_conf)) && sgd(loader) &&
+           epoch++ < max_epoch) {
       if (config->loss_reporter)
         config->loss_reporter(epoch - 1, calc_loss(&loss_result));
-      destroy_dat_loader(dat_loader);
+      destroy_dat_loader(loader);
     };
   }
   return TRUE;
 }
 
 static int
-getdata(DataGetter getter, double *buffer) {
-  return getter((void *)buffer, BUFFER_SIZE * sizeof(double));
-}
-
-static int
 calc_loss(double *result) {
   int i;
-  size_t dat_size;
+  size_t n;
   double loss = 0;
-  DatLoader *dat_loader;
-  Point buffer[MAX_BUFFER_SIZE];
+  DatLoader *loader;
+  Point buffer[BUFFER_SIZE];
   Point *curr;
   double dot_result;
   int retval = TRUE;
 
-  if ((dat_loader = make_data_loader(loader_conf)) == NULL) {
+  if ((loader = make_data_loader(loader_conf)) == NULL) {
     rp_err("Calculate loss error, can't make data loader");
     return FALSE; /* No need to cleanup */
   }
-  while (!ld_err(dat_loader) &&
-         (dat_size = load_data(dat_loader, MAX_BUFFER_SIZE, buffer)) > 0) {
-    for (i = 0; i < dat_size; ++i) {
-      curr = buffer + i; /* Borrow */
-      if (dot_product(&dot_result, curr->x, theta, curr->x_length) == 0) {
-        rp_err("SGD error, can't do dot product");
-        retval = FALSE;
-        goto cleanup;
-      }
+  while (!ld_err(loader) && (n = load_data(loader, BUFFER_SIZE, buffer)) > 0) {
+    for (i = 0; i < n; ++i) {
+      curr = buffer + i;
+      dot_product(&dot_result, curr->x, theta, curr->x_length);
       loss += (dot_result - curr->y) * (dot_result - curr->y);
     }
   }
-  if (ld_err(dat_loader)) {
+  if (ld_err(loader)) {
     rp_err("calc_loss: error when load data");
     retval = FALSE;
-    goto cleanup;
+  } else {
+    *result = loss / 2;
+    retval = TRUE;
   }
-  *result = loss / 2;
-  retval = TRUE;
-
-cleanup:
-  destroy_dat_loader(dat_loader);
+  destroy_dat_loader(loader);
   return retval;
 }
 
@@ -130,27 +115,17 @@ sgd(DatLoader *loader) {
 
   init_point(&point, dim);
   while (!(ld_err(loader)) && (size = load_data(loader, 1, &point)) > 0) {
-    if (dot_product(point.x, theta, &coeff, dim) == 0) {
-      rp_err("SGD error, can't do dot product");
-      retval = FALSE;
-      goto cleanup;
-    }
+    dot_product(point.x, theta, &coeff, dim);
     coeff = config->learn_rate * (point.y - coeff);
-    if (vec_mul(temp, point.x, coeff, dim) == 0) {
-      rp_err("SGD error, can't do vector multiplication");
-      retval = FALSE;
-      goto cleanup;
-    }
+    vec_mul(temp, point.x, coeff, dim);
     vec_add(theta, theta, temp, dim);
   }
   if (ld_err(loader)) {
     rp_err("SGD load data error");
     retval = FALSE;
-    goto cleanup;
+  } else {
+    retval = TRUE;
   }
-  retval = TRUE;
-
-cleanup:
   safe_free((void **)&(point.x));
   safe_free((void **)&temp);
   return retval;

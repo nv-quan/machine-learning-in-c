@@ -1,7 +1,8 @@
 #ifndef DATA_H
 #define DATA_H
 #include <stdlib.h>
-#define MAX_FEATURE_SIZE 1000
+
+#include "config.h"
 
 /* typedef enum number_type { INT, LONG, FLOAT, DOUBLE };
 
@@ -32,7 +33,7 @@ DType d_numarr_type(const DNumberArray *numarr);
 /* (x, y) data point where x is array of n length and y is double */
 typedef struct point_data {
   size_t x_length;
-  double x[MAX_FEATURE_SIZE];
+  double x[CF_FEAT_DIM];
   double y;
 } Point;
 

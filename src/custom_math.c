@@ -1,16 +1,16 @@
 #include "custom_math.h"
 
-int
+void
 dot_product(double *result, double *a, double *b, size_t dimension) {
-  return 0;
+  while (dimension--) result[dimension] = a[dimension] * b[dimension];
 }
 
-int
+void
 vec_add(double *result, double *a, double *b, size_t dimension) {
-  return 0;
+  while (dimension--) result[dimension] = a[dimension] + b[dimension];
 }
 
-int
+void
 vec_mul(double *result, double *vec, double s, size_t dimension) {
-  return 0;
+  while (dimension--) result[dimension] = s * vec[dimension];
 }

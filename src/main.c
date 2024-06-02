@@ -5,19 +5,45 @@
 #include "data.h"
 #include "io.h"
 
+static void init_grad_desc_conf(GDConf *conf);
+static void init_loader_conf(DLConf *conf);
+static void report_loss(int epoch, double loss);
+
 int
 main(void) {
-  Config config = get_config();
-  /* Data buffer[MAX_DATA_LENGTH]; */
-  switch (config.algorithm) {
-    case STOCHASTIC_GRADIENT_DESCENT:
-      /* sgd(config); */
-      break;
-    case BATCH_GRADIENT_DESCENT:
-      break;
-    default:
-      break;
-  }
-  /* display_result();*/
+  GDConf grad_desc_conf;
+  DLConf data_loader_conf;
+  double result[CF_FEAT_DIM];
+
+  init_grad_desc_conf(&grad_desc_conf);
+  init_loader_conf(&data_loader_conf);
+  grad_desc(&grad_desc_conf, &data_loader_conf, result);
   return 0;
+}
+
+void
+init_grad_desc_conf(GDConf *conf) {
+  conf->batch_size = CF_BATCH_SZ;
+  conf->learn_rate = CF_LRATE;
+  conf->dimension = CF_FEAT_DIM;
+  conf->loss_reporter = report_loss;
+}
+
+void
+report_loss(int epoch, double loss) {
+  printf("Epoch %d: %lf\n", epoch, loss);
+}
+
+void
+init_loader_conf(DLConf *conf) {
+  int i;
+  int feature_columns[] = CF_FEAT_COLS;
+
+  snprintf(conf->file_path, CF_PATH_LEN, "%s", CF_CSV_PATH);
+  conf->x_dim = CF_FEAT_DIM;
+  for (i = 0; i < CF_FEAT_DIM; ++i) {
+    conf->x_cols[i] = feature_columns[i];
+  }
+  conf->y_col = CF_OUTPUT_COL;
+  conf->has_header = 1;
 }
