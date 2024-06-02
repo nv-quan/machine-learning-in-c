@@ -51,8 +51,8 @@ Module.symvers
 Mkfile.old
 dkms.conf
 
-# File executable
-build/ml_algos
+# Build dir
+build/*
 
 # Ctags
 tags
