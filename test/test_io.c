@@ -1,12 +1,15 @@
 #include "test_io.h"
 
+#include <string.h>
+
 #include "config.h"
 #include "io.h"
 
 void init_dlconf(DLConf* conf);
 
 int
-test_io() {
+test_io(char* name) {
+  strcpy(name, "Test IO");
   DLConf conf;
   init_dlconf(&conf);
   DatLoader* loader = make_data_loader(&conf);
