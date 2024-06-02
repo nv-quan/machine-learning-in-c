@@ -64,7 +64,7 @@ $(BUILDDIR)/%.o: $(TEST_SRCDIR)/%.c
 
 # Generate tags
 tags: $(SRC) $(HDR)
-	@ctags -R $(SRCDIR)
+	@ctags -R $(SRCDIR) $(TEST_SRCDIR)
 
 # Generate cscope files
 cscope: cscope.files
