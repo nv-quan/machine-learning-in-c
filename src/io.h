@@ -11,14 +11,6 @@
 #define BUFFER_SIZE 1024
 #define ERR_MSG_SIZE 1024
 
-/*enum source_type { CSV_FILE };
- *enum data_type { POINT };
- */
-enum data_loader_type {
-  DMEM, /* Memory */
-  DFILE /* File */
-};
-
 enum loader_err { NOERR, CSV_ERR, FILE_ERR };
 
 /* TODO: Make memory data loader */
@@ -30,31 +22,7 @@ typedef struct data_loader_config {
   int has_header;              /* 1 if the csv file has header, 0 if not */
 } DLConf;
 
-/* File data loader
- * [fp]: file pointer, use fread to read next data
- */
-struct file_data_loader {
-  FILE *fp;
-};
-
-/* Memory data loader
- * [dp]: pointer to the memory block that stores data
- * when get data out, advance this pointer
- * using [type] to determine type of the pointer
-struct memory_data_loader {
-  enum memory_data_type type;
-  void *dp;
-};
-*/
-
 /* TODO: Make memory loader */
-
-/*
-union data_loader_content {
-  struct file_data_loader file;
-};
-*/
-
 /* Data Loader
  *
  */
@@ -122,17 +90,5 @@ void destroy_dat_loader(DatLoader *dat_loader);
  * Return EOF when there is an error or EOF
  */
 typedef int (*DataGetter)(void *, size_t);
-
-/* Get data point
- * Usage:
- *  Point p;
- *  PointGetter(&p);
- *
- * Provide the function with allocated Point
- *  It will allocate p.x and move ownership to the caller
- *  Return 1 when success and 0 when fail
- *  If it fails then no allocation will be made, owner doesn't need to care
- */
-typedef int (*PointGetter)(Point *);
 
 #endif /* ifndef IO_H */

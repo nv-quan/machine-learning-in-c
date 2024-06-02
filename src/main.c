@@ -21,7 +21,7 @@ main(void) {
   return 0;
 }
 
-void
+static void
 init_grad_desc_conf(GDConf *conf) {
   conf->batch_size = CF_BATCH_SZ;
   conf->learn_rate = CF_LRATE;
@@ -29,12 +29,12 @@ init_grad_desc_conf(GDConf *conf) {
   conf->loss_reporter = report_loss;
 }
 
-void
+static void
 report_loss(int epoch, double loss) {
   printf("Epoch %d: %lf\n", epoch, loss);
 }
 
-void
+static void
 init_loader_conf(DLConf *conf) {
   int i;
   int feature_columns[] = CF_FEAT_COLS;
