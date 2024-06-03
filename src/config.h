@@ -14,7 +14,8 @@
 /* Batch size */
 #define CF_BATCH_SZ 1
 
-#define CF_FEAT_COLS {2, 3, 4}
+#define CF_FEAT_COLS \
+  { 2, 3, 4 }
 
 #define CF_OUTPUT_COL 7
 

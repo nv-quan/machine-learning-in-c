@@ -1,29 +1,15 @@
 #include "data.h"
 
-#include <stdlib.h>
+#include <stdio.h>
 
 #include "utils.h"
 
-/*Data makeData(double x, double y) {
-  Data temp;
-  temp.x = x;
-  temp.y = y;
-  return temp;
-}
+void
+log_point(Point *p) {
+  int i;
 
-DoubleArray make_double_array(size_t size) {
-  DoubleArray new_array;
-  double *array_content = (double *)safe_malloc(sizeof(double) * size);
-  new_array.content = array_content;
-  return new_array;
+  printf("[POINT] y: %lf, x: ", p->y);
+  for (i = 0; i < p->x_length; ++i) {
+    printf("%lf%s", p->x[i], i < p->x_length - 1 ? " \n" : "\n");
+  }
 }
-
-DType d_num_type(const DNumber *number) {
-  return number->type;
-}
-
-DType d_numarr_type(const DNumberArray *numarr) {
-  if (numarr->length == 0 || numarr->content == NULL) return -1;
-  return numarr->content[0].type;
-}
-*/

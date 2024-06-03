@@ -24,3 +24,9 @@ void
 rp_err(char *msg) {
   fprintf(stderr, "%s\n", msg);
 }
+
+int
+double_eq(double a, double b) {
+  /* TODO: Recheck this */
+  return (a - b) / (a > b ? a : b) < 1e-5;
+}

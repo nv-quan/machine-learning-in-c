@@ -199,7 +199,9 @@ csv_eor(int c, void *custom) {
   CsvCtx *ctx = (CsvCtx *)custom;
   ctx->field_idx = 0;
   ctx->row_idx++;
-  if (ctx->point_changed) ctx->point_idx++;
+  if (ctx->point_changed) {
+    ctx->points[ctx->point_idx++].x_length = ctx->loader->dl_conf.x_dim;
+  }
   ctx->point_changed = FALSE;
   return;
 }

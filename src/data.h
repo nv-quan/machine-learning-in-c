@@ -37,4 +37,6 @@ typedef struct point_data {
   double y;
 } Point;
 
+void log_point(Point* point);
+
 #endif
