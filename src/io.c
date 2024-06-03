@@ -175,7 +175,7 @@ csv_eofld(void *dat, size_t len, void *custom) {
     /* Just return and run as normal, but this shouldn't happen */
     return;
   }
-  if (ctx->row_idx <= ctx->begin_row) return;
+  if (ctx->row_idx < ctx->begin_row) return;
 
   loader_conf = &ctx->loader->dl_conf;
   /* TODO: Do strtod error handling */
