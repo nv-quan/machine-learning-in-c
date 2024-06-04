@@ -15,29 +15,30 @@ enum loader_err { NOERR, CSV_ERR, FILE_ERR };
 
 /* TODO: Make memory data loader */
 typedef struct data_loader_config {
+  int is_mem;      /* Check if the data comes from the memory or disk */
+  void *mem;       /* If is_mem is non-zero then this will store all the data,
+                      otherwise this is NULL */
+  size_t mem_size; /* Size of data in memory if is_mem is non-zero,
+                      otherwise this is 0 */
   char file_path[CF_PATH_LEN]; /* File path */
   size_t x_dim;                /* Dimension of X */
   int x_cols[CF_FEAT_DIM];     /* Columns from table for x (features) */
   int y_col;                   /* Column from table for y */
-  int has_header;              /* 1 if the csv file has header, 0 if not */
+  int has_header; /* Non-zero if the csv file has header, 0 if not */
 } DLConf;
 
-/* TODO: Make memory loader */
-/* Data Loader
- *
- */
+/* Data Loader */
 typedef struct data_loader {
-  /* File pointer */
-  FILE *fp;
+  /* ======= FILE LOADER ========== */
+  FILE *fp;                   /* File pointer */
+  struct csv_parser *csv_prs; /* CSV Parser struct */
 
-  /* CSV Parser struct */
-  struct csv_parser *csv_prs;
+  /* ======= MEMORY LOADER ======== */
+  size_t mem_idx; /* Index to the current memory block */
 
-  /* Error code */
-  enum loader_err err;
-
-  /* Data loader config */
-  DLConf dl_conf;
+  /* ======= COMMON =============== */
+  enum loader_err err; /* Error code */
+  DLConf dl_conf;      /* Data loader config */
 } DatLoader;
 
 /* Check if data_loader has error
@@ -81,14 +82,5 @@ DatLoader *make_data_loader(DLConf *dl_conf);
  *  dat_loader: pointer to a data_loader, borrow from caller
  */
 void destroy_dat_loader(DatLoader *dat_loader);
-
-/* Function to get data
- * parameters:
- * (1) void*: points to an allocated buffer
- * (2) size_t: buffer size
- * Return size of the data
- * Return EOF when there is an error or EOF
- */
-typedef int (*DataGetter)(void *, size_t);
 
 #endif /* ifndef IO_H */

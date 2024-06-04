@@ -33,25 +33,12 @@ static size_t parse_buf(DatLoader *loader, char *buf, size_t len, CsvCtx *ctx);
 
 static void init_csv_ctx(CsvCtx *ctx, Point *buf, int len, DatLoader *loader);
 
-DataGetter
-csv_file_getter(const char *file_path) {
-  static FILE *fp;
-  char buffer[BUFFER_SIZE];
-  int i;
-  if ((fp = fopen(file_path, "r")) == NULL) {
-    fprintf(stderr, "Can't open file %s", file_path);
-    exit(-1); /* Temporary error handling */
-  }
-  while ((i = fread(buffer, sizeof(char), BUFFER_SIZE, fp)) > 0) {
-  }
-  return NULL;
-}
-
 static int
 is_ctx_full(CsvCtx *context) {
   return context->point_idx >= context->points_len;
 }
 
+/* TODO: Refactor to add memory loader */
 size_t
 load_data(DatLoader *loader, size_t nsize, Point *points) {
   size_t sz_read, sz_parse, total_sz_read = 0; /* bytes count */
@@ -103,6 +90,7 @@ parse_buf(DatLoader *loader, char *buf, size_t len, CsvCtx *ctx) {
   return i;
 }
 
+/* TODO: Refactor to add memory loader */
 DatLoader *
 make_data_loader(DLConf *dl_conf) {
   size_t dl_sz = sizeof(DatLoader);
@@ -134,6 +122,7 @@ failed:
   return NULL;
 }
 
+/* TODO: Refactor to add memory loader */
 void
 destroy_dat_loader(DatLoader *dat_loader) {
   if (dat_loader->fp) fclose(dat_loader->fp);

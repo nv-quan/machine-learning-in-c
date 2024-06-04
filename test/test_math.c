@@ -4,7 +4,40 @@
 #include <string.h>
 
 #include "test_config.h"
+#include "test_math.h"
 #include "utils.h"
+
+int
+test_double_eq(char* test_name) {
+  double a = 1.23456;
+  double b = 1.23457;
+  double c = 1.234561;
+  double d = 1.234559;
+
+  strcpy(test_name, "Test double equality");
+  if (double_eq(a, b)) {
+    fprintf(stderr,
+            "test_double_eq: expected %lf to not be equal to %lf, but they are",
+            a, b);
+    return 0;
+  }
+
+  if (!double_eq(a, c)) {
+    fprintf(stderr,
+            "test_double_eq: expected %lf to be equal to %lf, but they are not",
+            a, c);
+    return 0;
+  }
+
+  if (!double_eq(a, d)) {
+    fprintf(stderr,
+            "test_double_eq: expected %lf to be equal to %lf, but they are not",
+            a, d);
+    return 0;
+  }
+
+  return 1;
+}
 
 int
 test_dot_product(char* test_name) {
