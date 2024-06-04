@@ -1,8 +1,10 @@
 #include "custom_math.h"
 
-void
-dot_product(double *result, double *a, double *b, size_t dimension) {
-  while (dimension--) result[dimension] = a[dimension] * b[dimension];
+double
+dot_product(double *a, double *b, size_t dimension) {
+  double result = 0;
+  while (dimension--) result += a[dimension] * b[dimension];
+  return result;
 }
 
 void

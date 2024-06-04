@@ -1,5 +1,7 @@
 #include "algorithms/gradient_descent.h"
 
+#include <stdio.h>
+
 #include "config.h"
 #include "custom_math.h"
 #include "data.h"
@@ -36,6 +38,7 @@ grad_desc(GDConf *gd_conf, DLConf *ld_conf, double *result) {
   int current_loss;
   double loss_result;
   DatLoader *loader;
+  int retval;
 
   /* Borrow pointers. All of the following pointers have lifetimes equivalent
    * to grad_desc */
@@ -46,7 +49,8 @@ grad_desc(GDConf *gd_conf, DLConf *ld_conf, double *result) {
   init_theta();
   if (config->batch_size == 0) {
     rp_err("Gradient descent error: 0 batch size");
-    return FALSE;
+    retval = FALSE;
+    goto cleanup;
   }
   if (config->batch_size == 1) {
     /* Stochastic gradient descent */
@@ -57,7 +61,14 @@ grad_desc(GDConf *gd_conf, DLConf *ld_conf, double *result) {
       destroy_dat_loader(loader);
     };
   }
-  return TRUE;
+  retval = TRUE;
+
+  /* Prevent accidentally accessing these variables after grad_desc finishes */
+cleanup:
+  theta = NULL;
+  config = NULL;
+  loader_conf = NULL;
+  return retval;
 }
 
 static int
@@ -78,7 +89,7 @@ calc_loss(double *result) {
   while (!ld_err(loader) && (n = load_data(loader, BUFFER_SIZE, buffer)) > 0) {
     for (i = 0; i < n; ++i) {
       curr = buffer + i;
-      dot_product(&dot_result, curr->x, theta, curr->x_length);
+      dot_result = dot_product(curr->x, theta, curr->x_length);
       loss += (dot_result - curr->y) * (dot_result - curr->y);
     }
   }
@@ -93,29 +104,17 @@ calc_loss(double *result) {
   return retval;
 }
 
-void
-init_point(Point *point, size_t dim) {
-  int i;
-
-  point->x_length = dim;
-  point->y = 0;
-  for (i = 0; i < dim; ++i) {
-    point->x[i] = 0;
-  }
-}
-
 int
 sgd(DatLoader *loader) {
   Point point;
   double coeff;
   size_t dim = config->dimension;
-  double *temp = (double *)safe_malloc(dim * sizeof(double)); /* owner */
+  double temp[CF_FEAT_DIM];
   size_t size = 0;
   int retval = 0;
 
-  init_point(&point, dim);
   while (!(ld_err(loader)) && (size = load_data(loader, 1, &point)) > 0) {
-    dot_product(point.x, theta, &coeff, dim);
+    coeff = dot_product(point.x, theta, dim);
     coeff = config->learn_rate * (point.y - coeff);
     vec_mul(temp, point.x, coeff, dim);
     vec_add(theta, theta, temp, dim);
@@ -126,8 +125,6 @@ sgd(DatLoader *loader) {
   } else {
     retval = TRUE;
   }
-  safe_free((void **)&(point.x));
-  safe_free((void **)&temp);
   return retval;
 }
 

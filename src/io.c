@@ -125,7 +125,7 @@ make_data_loader(DLConf *dl_conf) {
   dat_loader->fp = fp;           /* Transfer ownership */
   dat_loader->csv_prs = csv_prs; /* Transfer ownership */
   dat_loader->err = NOERR;
-  memcpy((void *)&dat_loader->dl_conf, dl_conf, sizeof(DLConf));
+  dat_loader->dl_conf = *dl_conf;
   return dat_loader;
 
 failed:
@@ -140,6 +140,7 @@ destroy_dat_loader(DatLoader *dat_loader) {
   csv_fini(dat_loader->csv_prs, csv_eofld, csv_eor, NULL);
   csv_free(dat_loader->csv_prs);
   safe_free((void **)&dat_loader->csv_prs);
+  safe_free((void **)&dat_loader);
 }
 
 int

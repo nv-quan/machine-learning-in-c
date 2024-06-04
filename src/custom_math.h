@@ -3,7 +3,7 @@
 #include <stdlib.h>
 
 /* Calculate dot product of 2 vector a and b */
-void dot_product(double *result, double *a, double *b, size_t dimension);
+double dot_product(double *a, double *b, size_t dimension);
 
 /* Add 2 vector a & b */
 void vec_add(double *result, double *a, double *b, size_t dimension);

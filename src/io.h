@@ -45,16 +45,16 @@ typedef struct data_loader {
  */
 int ld_err(DatLoader *loader);
 
-/* Load data
+/* Load Data
  *
- * Every call will load data into a buffer (array of Point).
- * [buffer], [loader] is caller's, no allocation inside function.
- * [nsize] is the buffer size (number of element).
+ * This function loads data into a buffer (an array of Points) with every call.
+ * The [buffer] and [loader] are provided by the caller. There is no allocation
+ * inside this function. [nsize] represents the buffer's element count.
  *
- * Return amount of data loaded (in number of element).
- * ld_err(loader) indicates if error happened.
- * After error happened, attempting to call load_data will result in undefined
- * behaviours.
+ * Returns the number of elements loaded.
+ * ld_err(loader) indicates if an error occurred.
+ * After an error occurs, attempting to call load_data will result in
+ * undefined behavior.
  */
 size_t load_data(DatLoader *loader, size_t nsize, Point *buffer);
 
