@@ -1,5 +1,6 @@
 #include "utils.h"
 
+#include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -27,6 +28,6 @@ rp_err(char *msg) {
 
 int
 double_eq(double a, double b) {
-  /* TODO: Recheck this */
-  return (a - b) / (a > b ? a : b) < 1e-5;
+  double epsilon = 5e-6;
+  return fabs(a - b) < epsilon;
 }

@@ -17,7 +17,7 @@ test_dot_product(char* test_name) {
   if (!double_eq((actual = dot_product(a, b, 3)), result)) {
     fprintf(
         stderr,
-        "test_dot_product: expect dot product result to be %lf, actual: %lf",
+        "test_dot_product: expect dot product result to be %lf, actual: %lf\n",
         result, actual);
     return 0;
   }
@@ -36,8 +36,9 @@ test_vec_add(char* test_name) {
   vec_add(result, a, b, 3);
   for (i = 0; i < 3; i++) {
     if (!double_eq(result[i], expected_result[i])) {
-      fprintf(stderr, "test_vec_add: expect result[%d] to be %lf, actual: %lf",
-              i, expected_result[i], result[i]);
+      fprintf(stderr,
+              "test_vec_add: expect result[%d] to be %lf, actual: %lf\n", i,
+              expected_result[i], result[i]);
       return 0;
     }
   }
@@ -56,8 +57,9 @@ test_vec_mul(char* test_name) {
   vec_mul(result, vec, s, 3);
   for (i = 0; i < 3; i++) {
     if (!double_eq(result[i], expected_result[i])) {
-      fprintf(stderr, "test_vec_mul: expect result[%d] to be %lf, actual: %lf",
-              i, expected_result[i], result[i]);
+      fprintf(stderr,
+              "test_vec_mul: expect result[%d] to be %lf, actual: %lf\n", i,
+              expected_result[i], result[i]);
       return 0;
     }
   }
