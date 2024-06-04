@@ -49,6 +49,7 @@ test_point_io(char* name) {
       fprintf(stderr,
               "test_point_io: expect point's x[%d] to be %lf, actual: %lf\n", i,
               x[i], point.x[i]);
+      return 0;
     }
   }
   destroy_dat_loader(loader);
