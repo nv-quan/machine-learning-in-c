@@ -38,9 +38,8 @@ is_ctx_full(CsvCtx *context) {
   return context->point_idx >= context->points_len;
 }
 
-/* TODO: Refactor to add memory loader */
 size_t
-load_data(DatLoader *loader, size_t nsize, Point *points) {
+load_data_file(DatLoader *loader, size_t nsize, Point *points) {
   size_t sz_read, sz_parse, total_sz_read = 0; /* bytes count */
   CsvCtx ctx;
   char buffer[BUFFER_SIZE];
@@ -72,6 +71,37 @@ load_data(DatLoader *loader, size_t nsize, Point *points) {
     loader->err = FILE_ERR;
   }
   return ctx.point_idx;
+}
+
+size_t
+load_data_mem(DatLoader *loader, size_t nsize, Point *points) {
+  size_t sz_read, mem_size;
+  CsvCtx ctx;
+  DLConf *conf;
+  int mem_idx;
+  char *mem;
+
+  if (nsize == 0) return 0;
+
+  conf = &loader->dl_conf;
+  mem_idx = loader->mem_idx;
+  mem_size = conf->mem_size;
+  mem = (char *)conf->mem;
+  if (mem_idx >= mem_size) {
+    loader->err = MEM_ERR;
+    return 0;
+  }
+  init_csv_ctx(&ctx, points, nsize, loader);
+  sz_read = parse_buf(loader, mem + mem_idx, mem_size - mem_idx, &ctx);
+  loader->mem_idx += sz_read;
+  return ctx.point_idx;
+}
+
+size_t
+load_data(DatLoader *loader, size_t nsize, Point *points) {
+  size_t (*caller)(DatLoader *, size_t, Point *);
+  caller = (loader->dl_conf.is_mem ? load_data_mem : load_data_file);
+  return caller(loader, nsize, points);
 }
 
 static size_t

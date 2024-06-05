@@ -11,7 +11,7 @@
 #define BUFFER_SIZE 1024
 #define ERR_MSG_SIZE 1024
 
-enum loader_err { NOERR, CSV_ERR, FILE_ERR };
+enum loader_err { NOERR, CSV_ERR, FILE_ERR, MEM_ERR };
 
 /* TODO: Make memory data loader */
 typedef struct data_loader_config {

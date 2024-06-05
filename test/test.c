@@ -7,8 +7,18 @@
 
 int
 main() {
-  int (*tests[])(char*) = {test_point_io, test_double_eq, test_dot_product,
-                           test_vec_add, test_vec_mul};
+  int (*tests[])(char*) = {test_double_eq,
+                           test_point_io_mem,
+                           test_point_io_file,
+                           test_continuous_loader_file1,
+                           test_continuous_loader_file2,
+                           test_continuous_loader_file3,
+                           test_continuous_loader_mem1,
+                           test_continuous_loader_mem2,
+                           test_continuous_loader_mem3,
+                           test_dot_product,
+                           test_vec_add,
+                           test_vec_mul};
   char test_name[NAME_LEN];
   int i;
 
