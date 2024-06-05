@@ -78,40 +78,32 @@ test_point_io_mem(char *name) {
   init_dlconf_mem(&conf);
   DatLoader *loader = make_data_loader(&conf);
   if ((n = load_data(loader, 1, &point)) != 1) {
-    fprintf(stderr,
-            "test_point_io_mem: expect load_data to return 1, actual: %d\n", n);
+    fprintf(stderr, "%s: expect load_data to return 1, actual: %d\n", name, n);
     retval = 0;
     goto cleanup;
   }
   if (ld_err(loader)) {
-    fprintf(
-        stderr,
-        "test_point_io_mem: expect load_data to not have error, actual: %d\n",
-        loader->err);
+    fprintf(stderr, "%s: expect load_data to not have error, actual: %d\n",
+            name, loader->err);
     retval = 0;
     goto cleanup;
   }
   if (point.x_length != TCF_FEAT_DIM) {
-    fprintf(
-        stderr,
-        "test_point_io_mem: expect point's dimension to be %d, actual: %lu\n",
-        TCF_FEAT_DIM, point.x_length);
+    fprintf(stderr, "%s: expect point's dimension to be %d, actual: %lu\n",
+            name, TCF_FEAT_DIM, point.x_length);
     retval = 0;
     goto cleanup;
   }
   if (!double_eq(point.y, y)) {
-    fprintf(stderr,
-            "test_point_io_mem: expect point's y to be %lf, actual: %lf\n", y,
+    fprintf(stderr, "%s: expect point's y to be %lf, actual: %lf\n", name, y,
             point.y);
     retval = 0;
     goto cleanup;
   }
   for (i = 0; i < 3; ++i) {
     if (!double_eq(point.x[i], x[i])) {
-      fprintf(
-          stderr,
-          "test_point_io_mem: expect point's x[%d] to be %lf, actual: %lf\n", i,
-          x[i], point.x[i]);
+      fprintf(stderr, "%s: expect point's x[%d] to be %lf, actual: %lf\n", name,
+              i, x[i], point.x[i]);
       retval = 0;
       goto cleanup;
     }
@@ -135,9 +127,9 @@ test_continuous_loader_file1(char *name) {
   }
   if (i != 414) {
     fprintf(stderr,
-            "test_continuous_loader_file1: wrong number of points, expect %d, "
+            "%s: wrong number of points, expect %d, "
             "actual: %d\n",
-            414, i);
+            name, 414, i);
     retval = 0;
     goto cleanup;
   }
@@ -297,24 +289,25 @@ init_dlconf_file(DLConf *conf) {
   conf->is_mem = 0;
 }
 
+static const char example_mem[] =
+    "1,2012.917,32,84.87882,10,24.98298,121.54024,37.9\n2,2012.917,19.5,306."
+    "5947,9,24.98034,121.53951,42.2\n3,2013.583,13.3,561.9845,5,24.98746,121."
+    "54391,47.3\n4,2013.500,13.3,561.9845,5,24.98746,121.54391,54.8\n5,2012."
+    "833,5,390.5684,5,24.97937,121.54245,43.1\n6,2012.667,7.1,2175.03,3,24."
+    "96305,121.51254,32.1";
+
 void
 init_dlconf_mem(DLConf *conf) {
   int i;
   int feature_columns[] = {2, 3, 4};
-  char mem[] =
-      "1,2012.917,32,84.87882,10,24.98298,121.54024,37.9\n2,2012.917,19.5,306."
-      "5947,9,24.98034,121.53951,42.2\n3,2013.583,13.3,561.9845,5,24.98746,121."
-      "54391,47.3\n4,2013.500,13.3,561.9845,5,24.98746,121.54391,54.8\n5,2012."
-      "833,5,390.5684,5,24.97937,121.54245,43.1\n6,2012.667,7.1,2175.03,3,24."
-      "96305,121.51254,32.1";
-
   conf->x_dim = 3;
+
   for (i = 0; i < 3; ++i) {
     conf->x_cols[i] = feature_columns[i];
   }
   conf->y_col = 7;
   conf->has_header = 0;
   conf->is_mem = 1;
-  conf->mem = (void *)mem;
-  conf->mem_size = sizeof(mem);
+  conf->mem = (void *)example_mem;
+  conf->mem_size = sizeof(example_mem);
 }

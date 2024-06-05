@@ -87,7 +87,7 @@ load_data_mem(DatLoader *loader, size_t nsize, Point *points) {
   mem_idx = loader->mem_idx;
   mem_size = conf->mem_size;
   mem = (char *)conf->mem;
-  if (mem_idx >= mem_size) {
+  if (mem_idx >= mem_size || mem_idx < 0) {
     loader->err = MEM_ERR;
     return 0;
   }
@@ -120,35 +120,39 @@ parse_buf(DatLoader *loader, char *buf, size_t len, CsvCtx *ctx) {
   return i;
 }
 
-/* TODO: Refactor to add memory loader */
 DatLoader *
-make_data_loader(DLConf *dl_conf) {
-  size_t dl_sz = sizeof(DatLoader);
-  DatLoader *dat_loader = (DatLoader *)safe_malloc(dl_sz);
+make_data_loader(DLConf *conf) {
+  size_t parser_sz;
+  struct csv_parser *parser;
+  DatLoader *loader;
 
-  size_t csv_prs_sz = sizeof(struct csv_parser);
-  struct csv_parser *csv_prs = (struct csv_parser *)safe_malloc(csv_prs_sz);
-
-  FILE *fp;
-
-  if (csv_init(csv_prs, CSV_APPEND_NULL)) {
+  loader = (DatLoader *)safe_malloc(sizeof(DatLoader));
+  parser_sz = sizeof(struct csv_parser);
+  parser = (struct csv_parser *)safe_malloc(parser_sz);
+  if (csv_init(parser, CSV_APPEND_NULL)) {
     rp_err("make_data_loader: Can't init csv");
     goto failed;
   }
-  if ((fp = fopen(dl_conf->file_path, "r")) == NULL) {
-    fprintf(stderr, "make_data_loader: Can't open file %s\n",
-            dl_conf->file_path);
-    goto failed;
+
+  if (conf->is_mem) {
+    loader->mem_idx = 0;
+    loader->fp = NULL;
+  } else {
+    if ((loader->fp = fopen(conf->file_path, "r")) == NULL) {
+      fprintf(stderr, "make_data_loader: Can't open file %s\n",
+              conf->file_path);
+      goto failed;
+    }
+    loader->mem_idx = -1;
   }
-  dat_loader->fp = fp;           /* Transfer ownership */
-  dat_loader->csv_prs = csv_prs; /* Transfer ownership */
-  dat_loader->err = NOERR;
-  dat_loader->dl_conf = *dl_conf;
-  return dat_loader;
+  loader->csv_prs = parser;
+  loader->err = NOERR;
+  loader->dl_conf = *conf;
+  return loader;
 
 failed:
-  safe_free((void **)&csv_prs);
-  safe_free((void **)&dat_loader);
+  safe_free((void **)&parser);
+  safe_free((void **)&loader);
   return NULL;
 }
 
