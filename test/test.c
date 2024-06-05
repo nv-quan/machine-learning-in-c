@@ -7,7 +7,8 @@
 
 int
 main() {
-  int (*tests[])(char*) = {test_double_eq,
+  int (*tests[])(char*) = {test_make_data_loader,
+                           test_double_eq,
                            test_point_io_mem,
                            test_point_io_file,
                            test_continuous_loader_file1,

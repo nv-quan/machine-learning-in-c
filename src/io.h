@@ -13,7 +13,6 @@
 
 enum loader_err { NOERR, CSV_ERR, FILE_ERR, MEM_ERR };
 
-/* TODO: Make memory data loader */
 typedef struct data_loader_config {
   int is_mem;      /* Check if the data comes from the memory or disk */
   void *mem;       /* If is_mem is non-zero then this will store all the data,

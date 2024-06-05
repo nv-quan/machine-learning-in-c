@@ -6,8 +6,10 @@
 #include "data.h"
 #include "io.h"
 #include "test_config.h"
+#include "test_math.h"
 #include "utils.h"
 
+/* TODO: Write test for make_data_loader */
 void init_dlconf_file(DLConf *conf);
 void init_dlconf_mem(DLConf *conf);
 
@@ -310,4 +312,29 @@ init_dlconf_mem(DLConf *conf) {
   conf->is_mem = 1;
   conf->mem = (void *)example_mem;
   conf->mem_size = sizeof(example_mem);
+}
+
+int
+test_make_data_loader(char *name) {
+  DLConf conf1;
+  DatLoader *loader;
+  int x_cols[] = {2, 3, 4};
+  int i;
+
+  strcpy(name, "Test make data loader");
+  conf1.is_mem = 0;
+  conf1.mem = NULL;
+  conf1.mem_size = 0;
+  strcpy(conf1.file_path, "test/test_data.csv");
+  conf1.x_dim = 3;
+  for (i = 0; i < sizeof(x_cols) / sizeof(int); ++i) {
+    conf1.x_cols[i] = x_cols[i];
+  }
+  conf1.y_col = 7;
+  loader = make_data_loader(&conf1);
+  if (!loader) {
+    fprintf(stderr, "%s: expect make_data_loader success but it failed", name);
+  }
+  destroy_dat_loader(loader);
+  return 1;
 }

@@ -1,6 +1,7 @@
 #ifndef TEST_IO_H
 #define TEST_IO_H
 
+int test_make_data_loader(char *name);
 int test_point_io_file(char *name);
 int test_point_io_mem(char *name);
 int test_continuous_loader_file1(char *name);

@@ -143,7 +143,7 @@ make_data_loader(DLConf *conf) {
               conf->file_path);
       goto failed;
     }
-    loader->mem_idx = -1;
+    loader->mem_idx = 0;
   }
   loader->csv_prs = parser;
   loader->err = NOERR;
@@ -156,10 +156,12 @@ failed:
   return NULL;
 }
 
-/* TODO: Refactor to add memory loader */
 void
 destroy_dat_loader(DatLoader *dat_loader) {
-  if (dat_loader->fp) fclose(dat_loader->fp);
+  if (!dat_loader) return; /* Nothing to destroy */
+  if (!dat_loader->dl_conf.is_mem && dat_loader->fp) {
+    fclose(dat_loader->fp);
+  }
   csv_fini(dat_loader->csv_prs, csv_eofld, csv_eor, NULL);
   csv_free(dat_loader->csv_prs);
   safe_free((void **)&dat_loader->csv_prs);
