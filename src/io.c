@@ -63,7 +63,6 @@ load_data_file(DatLoader *loader, size_t nsize, Point *points) {
 
   while (!is_ctx_full(&ctx) && (sz_read = fread(buffer, 1, BUFFER_SIZE, fp))) {
     ferr = ferror(fp);
-    file_eof = feof(fp);
     if ((sz_parse = parse_buf(loader, buffer, sz_read, &ctx))) {
       /* Seek fp in case sz_parse < sz_read. This is to make sure the next
        * call to load_data pick up where this finishes. When this case
@@ -80,11 +79,7 @@ load_data_file(DatLoader *loader, size_t nsize, Point *points) {
       break;
     }
 
-    /* TODO: Check file_eof */
-    /* This means end of file is encountered, the next fread will return 0
-     *  |                            |
-     *  v                            v */
-    if (sz_read < BUFFER_SIZE && !ferr && finish_parsing(loader, &ctx)) {
+    if (feof(fp) && finish_parsing(loader, &ctx)) {
       rp_err("load_data_file: Can't finish parsing data");
       loader->err = CSV_ERR;
       break;
