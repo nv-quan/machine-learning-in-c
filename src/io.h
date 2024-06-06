@@ -19,25 +19,33 @@ typedef struct data_loader_config {
                       otherwise this is NULL */
   size_t mem_size; /* Size of data in memory if is_mem is non-zero,
                       otherwise this is 0 */
-  char file_path[CF_PATH_LEN]; /* File path */
-  size_t x_dim;                /* Dimension of X */
+  int has_header;  /* Non-zero if the csv file has header, 0 if not */
+  size_t x_dim;    /* Dimension of X */
+  int y_col;       /* Column from table for y */
   int x_cols[CF_FEAT_DIM];     /* Columns from table for x (features) */
-  int y_col;                   /* Column from table for y */
-  int has_header; /* Non-zero if the csv file has header, 0 if not */
+  char file_path[CF_PATH_LEN]; /* File path */
 } DLConf;
+
+/* Augmented data structure for point */
+typedef struct point_aug {
+  size_t x_length;
+  int x_filled[CF_FEAT_DIM];
+  int y_filled;
+} PointAug;
 
 /* Data Loader */
 typedef struct data_loader {
-  /* ======= FILE LOADER ========== */
   FILE *fp;                   /* File pointer */
   struct csv_parser *csv_prs; /* CSV Parser struct */
+  size_t mem_idx;             /* Index to the current memory block */
+  enum loader_err err;        /* Error code */
+  DLConf dl_conf;             /* Data loader config */
 
-  /* ======= MEMORY LOADER ======== */
-  size_t mem_idx; /* Index to the current memory block */
-
-  /* ======= COMMON =============== */
-  enum loader_err err; /* Error code */
-  DLConf dl_conf;      /* Data loader config */
+  /* Unprocessed point data which need to be processed on the next load_data
+   * call
+   * Point unproc_dat;
+   * PointAug unproc_dat_aug;
+   */
 } DatLoader;
 
 /* Check if data_loader has error

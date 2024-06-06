@@ -21,9 +21,15 @@ safe_free(void **p) {
   *p = NULL;
 }
 
+/* TODO: Write rp_err version that accepts format */
 void
 rp_err(char *msg) {
-  fprintf(stderr, "%s\n", msg);
+  fprintf(stderr, "[ERROR] %s\n", msg);
+}
+
+void
+rp_warn(char *msg) {
+  fprintf(stderr, "[WARNING] %s\n", msg);
 }
 
 int
