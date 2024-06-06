@@ -47,22 +47,6 @@ is_ctx_full(CsvCtx *context) {
   return context->point_idx >= context->points_len;
 }
 
-/*
- * static void
- * init_first_point(DatLoader *loader, Point *point) {
- *   int i;
- *
- *   if (loader->unproc_dat_aug.y_filled) {
- *     point->y = loader->unproc_dat.y;
- *   }
- *   for (i = 0; i < loader->unproc_dat.x_length; ++i) {
- *     if (loader->unproc_dat_aug.x_filled[i]) {
- *       point->x[i] = loader->unproc_dat.x[i];
- *     }
- *   }
- * }
- */
-
 static size_t
 load_data_file(DatLoader *loader, size_t nsize, Point *points) {
   size_t sz_read, sz_parse; /* bytes count */

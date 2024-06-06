@@ -5,6 +5,7 @@
 #include "config.h"
 #include "custom_math.h"
 #include "data.h"
+#include "debug.h"
 #include "io.h"
 #include "utils.h"
 
@@ -16,13 +17,8 @@
 static int sgd(DatLoader *loader);
 static void init_theta();
 
-/* Calculate loss function
- *
- * Save result into [result]
- *
- * Return 0 on error, and 1 on success
- */
-static int calc_loss(double *result);
+/* Calculate loss function. Return loss on success and -1 on error */
+static double calc_loss();
 
 static double *theta;
 static GDConf *config;
@@ -56,8 +52,9 @@ grad_desc(GDConf *gd_conf, DLConf *ld_conf, double *result) {
     /* Stochastic gradient descent */
     while ((loader = make_data_loader(ld_conf)) && sgd(loader) &&
            epoch++ < max_epoch) {
-      if (config->loss_reporter)
-        config->loss_reporter(epoch - 1, calc_loss(&loss_result));
+      if (config->loss_reporter) {
+        config->loss_reporter(epoch - 1, calc_loss());
+      }
       destroy_dat_loader(loader);
     };
   }
@@ -71,8 +68,8 @@ cleanup:
   return retval;
 }
 
-static int
-calc_loss(double *result) {
+static double
+calc_loss() {
   int i;
   size_t n;
   double loss = 0;
@@ -80,28 +77,31 @@ calc_loss(double *result) {
   Point buffer[BUFFER_SIZE];
   Point *curr;
   double dot_result;
-  int retval = TRUE;
 
   if ((loader = make_data_loader(loader_conf)) == NULL) {
     rp_err("Calculate loss error, can't make data loader");
-    return FALSE; /* No need to cleanup */
+    return -1; /* No need to cleanup */
   }
   while (!ld_err(loader) && (n = load_data(loader, BUFFER_SIZE, buffer)) > 0) {
     for (i = 0; i < n; ++i) {
       curr = buffer + i;
       dot_result = dot_product(curr->x, theta, curr->x_length);
+#ifdef DEBUG_H
+      printf("dot_result: %lf, y: %lf\n", dot_result, curr->y);
+      print_arr("theta", theta, curr->x_length);
+      print_arr("x", curr->x, curr->x_length);
+#endif
       loss += (dot_result - curr->y) * (dot_result - curr->y);
     }
   }
   if (ld_err(loader)) {
     rp_err("calc_loss: error when load data");
-    retval = FALSE;
+    loss = -1;
   } else {
-    *result = loss / 2;
-    retval = TRUE;
+    loss /= 2;
   }
   destroy_dat_loader(loader);
-  return retval;
+  return loss;
 }
 
 int
@@ -113,11 +113,17 @@ sgd(DatLoader *loader) {
   size_t size = 0;
   int retval = 0;
 
+#ifdef DEBUG_H
+  print_arr("theta entering sgd", theta, config->dimension);
+#endif
   while (!(ld_err(loader)) && (size = load_data(loader, 1, &point)) > 0) {
     coeff = dot_product(point.x, theta, dim);
     coeff = config->learn_rate * (point.y - coeff);
     vec_mul(temp, point.x, coeff, dim);
     vec_add(theta, theta, temp, dim);
+#ifdef DEBUG_H
+    print_arr("theta after add", theta, config->dimension);
+#endif
   }
   if (ld_err(loader)) {
     rp_err("SGD load data error");
@@ -135,4 +141,7 @@ init_theta() {
   for (i = 0; i < config->dimension; i++) {
     theta[i] = 0;
   }
+#ifdef DEBUG_H
+  print_arr("initialized theta", theta, config->dimension);
+#endif
 }

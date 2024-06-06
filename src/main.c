@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <string.h>
 
 #include "algorithms/gradient_descent.h"
 #include "config.h"
@@ -39,11 +40,12 @@ init_loader_conf(DLConf *conf) {
   int i;
   int feature_columns[] = CF_FEAT_COLS;
 
-  snprintf(conf->file_path, CF_PATH_LEN, "%s", CF_CSV_PATH);
+  conf->is_mem = 0;
+  conf->has_header = 1;
   conf->x_dim = CF_FEAT_DIM;
   for (i = 0; i < CF_FEAT_DIM; ++i) {
     conf->x_cols[i] = feature_columns[i];
   }
   conf->y_col = CF_OUTPUT_COL;
-  conf->has_header = 1;
+  strcpy(conf->file_path, CF_CSV_PATH);
 }
