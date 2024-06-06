@@ -6,6 +6,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "data.h"
 #include "utils.h"
 
 typedef struct csv_context {
@@ -31,6 +32,10 @@ static void csv_eor(int c, void *custom);
  * can be smaller than len if ctx is full.
  */
 static size_t parse_buf(DatLoader *loader, char *buf, size_t len, CsvCtx *ctx);
+
+/* Finish parsing when all data in file/memory is read. This will submit all
+ * data left to csv_parser. Return 0 on success and non-zero on failure */
+static int finish_parsing(DatLoader *loader, CsvCtx *ctx);
 
 static void init_csv_ctx(CsvCtx *ctx, Point *buf, int len, DatLoader *loader);
 static int is_point_full(const PointAug *data);
@@ -60,57 +65,69 @@ is_ctx_full(CsvCtx *context) {
 
 static size_t
 load_data_file(DatLoader *loader, size_t nsize, Point *points) {
-  size_t sz_read, sz_parse, total_sz_read = 0; /* bytes count */
+  size_t sz_read, sz_parse; /* bytes count */
   CsvCtx ctx;
   char buffer[BUFFER_SIZE];
   FILE *fp = loader->fp;
+  long n;
+  int ferr;
 
   if (nsize == 0) return 0;
-  /* init_first_point(loader, points); No need to do this, last unprocessed
-   * point will never appear here if the logic is correct */
 
   /* pointers lifetime is same with load_data */
   init_csv_ctx(&ctx, points, nsize, loader);
 
   while (!is_ctx_full(&ctx) && (sz_read = fread(buffer, 1, BUFFER_SIZE, fp))) {
+    ferr = ferror(fp);
     if ((sz_parse = parse_buf(loader, buffer, sz_read, &ctx))) {
       /* Seek fp in case sz_parse < sz_read. This is to make sure the next
        * call to load_data pick up where this finishes. When this case
        * happens, is_ctx_full also returns true on the next call so the
        * loop will be stopped. */
-      if (fseek(fp, (long)sz_parse - (long)sz_read, SEEK_CUR) != 0) {
+      if ((n = (long)sz_parse - (long)sz_read) && fseek(fp, n, SEEK_CUR) != 0) {
         loader->err = FILE_ERR;
         /* It's an undefined behaviour to call load_data after this point
          * so we don't need to care about fp position */
         break;
       }
-      total_sz_read += sz_parse;
     } else {
       loader->err = CSV_ERR;
       break;
     }
+
+    /* This means end of file is encountered, the next fread will return 0
+     *  |                            |
+     *  v                            v */
+    if (sz_read < BUFFER_SIZE && !ferr && finish_parsing(loader, &ctx)) {
+      rp_err("load_data_file: Can't finish parsing data");
+      loader->err = CSV_ERR;
+      break;
+    }
+    if (ferr) {
+      loader->err = FILE_ERR;
+      rp_err("load_data_file: Error while reading file.");
+      break;
+    }
   }
-  if (!is_ctx_full(&ctx) && !sz_read && ferror(fp)) {
-    rp_err("load_data_file: Error while reading file.");
-    loader->err = FILE_ERR;
-  } else if (!is_ctx_full(&ctx) && !sz_read && is_point_full(&ctx.point_aug)) {
+  /* Loop breaks mean ctx is full or sz_read is 0 or some error happened */
+
+  /* This means eof is encountered but not all fields are filled */
+  if (!is_ctx_full(&ctx) && !ld_err(loader) &&
+      !is_point_empty(&ctx.point_aug)) {
     rp_err("load_data_file: Warning, file is not completed.");
     /* Allows program to continue */
-    reset_point_aug(&ctx.point_aug);
   }
   /* At this point, point_aug must be empty because either ctx is full, in which
    * parse_buf already guarantee point_aug to be empty, or not, which makes
    * sz_read to be 0 and makes point_aug empty. */
-  assert(is_point_empty(&ctx.point_aug));
-  /* loader->unproc_dat_aug = ctx.point_aug; */
+  loader->record_loaded = ctx.row_idx;
   return ctx.point_idx;
 }
 
-/* TODO: Handle buffer ends before all fields are read */
-/* TODO: Handle unproc_dat */
-size_t
+/* Every call to load_data_mem will try to load data and increase mem_idx */
+static size_t
 load_data_mem(DatLoader *loader, size_t nsize, Point *points) {
-  size_t sz_read, mem_size, mem_idx;
+  size_t n, mem_size, mem_idx;
   CsvCtx ctx;
   DLConf *conf;
   char *mem;
@@ -121,18 +138,40 @@ load_data_mem(DatLoader *loader, size_t nsize, Point *points) {
   mem_idx = loader->mem_idx;
   mem_size = conf->mem_size;
   mem = (char *)conf->mem;
-  if (mem_idx >= mem_size) {
+
+  /* All data is already read, return */
+  if (mem_idx == mem_size) return 0;
+
+  /* Invalid mem_idx */
+  if (mem_idx > mem_size) {
     loader->err = MEM_ERR;
     return 0;
   }
   init_csv_ctx(&ctx, points, nsize, loader);
-  sz_read = parse_buf(loader, mem + mem_idx, mem_size - mem_idx, &ctx);
-  loader->mem_idx += sz_read;
-  if (!is_ctx_full(&ctx) && sz_read == 0) {
-    rp_err("load_data_file: Warning, file is not completed.");
-    reset_point_aug(&ctx.point_aug);
+
+  if (!(n = parse_buf(loader, mem + mem_idx, mem_size - mem_idx, &ctx))) {
+    rp_err("load_data_mem: Can't parse data");
+    loader->err = MEM_ERR;
+    return 0;
   }
-  assert(is_point_empty(&ctx.point_aug));
+  loader->mem_idx += n;
+
+  /* When all data is read, call finish_parsing. Next call to load_data will not
+   * do anything. */
+  if (loader->mem_idx == mem_size && finish_parsing(loader, &ctx)) {
+    rp_err("load_data_mem: Can't finish parsing");
+    loader->err = CSV_ERR;
+    return 0;
+  }
+
+  /* Here, either ctx is full or not. If ctx is full, parse_buf guarantee
+   * point_aug to be empty. If ctx is not full, that means the memory runs out
+   * of data before all fields are filled */
+  if (!is_point_empty(&ctx.point_aug)) {
+    rp_err("load_data_mem: Data format issue");
+    /* Allow continuing of program */
+  }
+  loader->record_loaded = ctx.row_idx;
   return ctx.point_idx;
 }
 
@@ -159,7 +198,16 @@ parse_buf(DatLoader *loader, char *buf, size_t len, CsvCtx *ctx) {
   return i;
 }
 
-/* TODO: Handle unproc_dat */
+static int
+finish_parsing(DatLoader *loader, CsvCtx *ctx) {
+  void *vctx = (void *)ctx;
+  struct csv_parser *parser = loader->csv_prs;
+  if (csv_fini(parser, csv_eofld, csv_eor, ctx)) {
+    return -1;
+  }
+  return 0;
+}
+
 DatLoader *
 make_data_loader(DLConf *conf) {
   size_t parser_sz;
@@ -188,6 +236,7 @@ make_data_loader(DLConf *conf) {
   loader->csv_prs = parser;
   loader->err = NOERR;
   loader->dl_conf = *conf;
+  loader->record_loaded = 0;
   return loader;
 
 failed:
@@ -196,7 +245,6 @@ failed:
   return NULL;
 }
 
-/* TODO: Handle unproc_dat */
 void
 destroy_dat_loader(DatLoader *dat_loader) {
   if (!dat_loader) return; /* Nothing to destroy */
@@ -220,7 +268,7 @@ init_csv_ctx(CsvCtx *ctx, Point *points, int len, DatLoader *loader) {
 
   ctx->begin_row = loader->dl_conf.has_header;
   ctx->field_idx = 0;
-  ctx->row_idx = 0;
+  ctx->row_idx = loader->record_loaded;
   ctx->point_idx = 0;
   ctx->points_len = len;
   ctx->points = points;

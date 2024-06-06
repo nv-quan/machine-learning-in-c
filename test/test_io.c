@@ -9,7 +9,6 @@
 #include "test_math.h"
 #include "utils.h"
 
-/* TODO: Write test for make_data_loader */
 void init_dlconf_file(DLConf *conf);
 void init_dlconf_mem(DLConf *conf);
 
@@ -122,7 +121,7 @@ test_continuous_loader_file1(char *name) {
   Point point1;
   int n, i, retval;
 
-  strcpy(name, "Test continous loader file 1");
+  strcpy(name, "Test continuous loader file 1");
   init_dlconf_file(&conf);
   DatLoader *loader = make_data_loader(&conf);
   for (i = 0; (n = load_data(loader, 1, &point1)) > 0; i++) {
@@ -147,7 +146,7 @@ test_continuous_loader_file2(char *name) {
   Point point1;
   int n, i, retval;
 
-  strcpy(name, "Test continous loader file 2");
+  strcpy(name, "Test continuous loader file 2");
   init_dlconf_file(&conf);
   DatLoader *loader = make_data_loader(&conf);
   for (i = 0; (n = load_data(loader, 2, &point1)) > 0; i++) {
@@ -174,10 +173,10 @@ test_continuous_loader_file3(char *name) {
   int n, i, retval;
   double x[] = {1.5, 23.38284, 7}, y = 47.7;
 
-  strcpy(name, "Test continous loader file 3");
+  strcpy(name, "Test continuous loader file 3");
   init_dlconf_file(&conf);
   DatLoader *loader = make_data_loader(&conf);
-  for (i = 0; (n = load_data(loader, 2, &point1)) > 0 && i < 20; i++) {
+  for (i = 0; i < 20 && (n = load_data(loader, 1, &point1)) > 0; i++) {
   }
 
   if (x[0] != point1.x[0] || x[1] != point1.x[1] || x[2] != point1.x[2]) {
@@ -202,7 +201,7 @@ test_continuous_loader_mem1(char *name) {
   Point point1;
   int n, i, retval;
 
-  strcpy(name, "Test continous loader mem 1");
+  strcpy(name, "Test continuous loader mem 1");
   init_dlconf_mem(&conf);
   DatLoader *loader = make_data_loader(&conf);
   for (i = 0; (n = load_data(loader, 1, &point1)) > 0; i++) {
@@ -227,7 +226,7 @@ test_continuous_loader_mem2(char *name) {
   Point point1;
   int n, i, retval;
 
-  strcpy(name, "Test continous loader mem 2");
+  strcpy(name, "Test continuous loader mem 2");
   init_dlconf_mem(&conf);
   DatLoader *loader = make_data_loader(&conf);
   for (i = 0; (n = load_data(loader, 2, &point1)) > 0; i++) {
@@ -254,10 +253,10 @@ test_continuous_loader_mem3(char *name) {
   int n, i, retval;
   double x[] = {13.3, 561.9845, 5}, y = 54.8;
 
-  strcpy(name, "Test continous loader mem 3");
+  strcpy(name, "Test continuous loader mem 3");
   init_dlconf_mem(&conf);
   DatLoader *loader = make_data_loader(&conf);
-  for (i = 0; (n = load_data(loader, 2, &point1)) > 0 && i < 4; i++) {
+  for (i = 0; i < 4 && (n = load_data(loader, 1, &point1)) > 0; i++) {
   }
 
   if (x[0] != point1.x[0] || x[1] != point1.x[1] || x[2] != point1.x[2]) {
@@ -334,6 +333,11 @@ test_make_data_loader(char *name) {
   loader = make_data_loader(&conf1);
   if (!loader) {
     fprintf(stderr, "%s: expect make_data_loader success but it failed", name);
+    return 0;
+  }
+  if (ld_err(loader)) {
+    fprintf(stderr, "%s: expect new loader to not have error but it has", name);
+    return 0;
   }
   destroy_dat_loader(loader);
   return 1;

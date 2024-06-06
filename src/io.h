@@ -9,7 +9,6 @@
 #include "data.h"
 
 #define BUFFER_SIZE 1024
-#define ERR_MSG_SIZE 1024
 
 enum loader_err { NOERR, CSV_ERR, FILE_ERR, MEM_ERR };
 
@@ -35,17 +34,13 @@ typedef struct point_aug {
 
 /* Data Loader */
 typedef struct data_loader {
-  FILE *fp;                   /* File pointer */
+  FILE *fp;          /* File pointer, for file loader only */
+  size_t mem_idx;    /* Index to the current memory block, for memory loader
+                        only */
+  int record_loaded; /* Number of loaded records, including headers */
   struct csv_parser *csv_prs; /* CSV Parser struct */
-  size_t mem_idx;             /* Index to the current memory block */
   enum loader_err err;        /* Error code */
   DLConf dl_conf;             /* Data loader config */
-
-  /* Unprocessed point data which need to be processed on the next load_data
-   * call
-   * Point unproc_dat;
-   * PointAug unproc_dat_aug;
-   */
 } DatLoader;
 
 /* Check if data_loader has error
