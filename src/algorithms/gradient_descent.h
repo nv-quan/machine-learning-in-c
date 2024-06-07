@@ -23,7 +23,7 @@ typedef struct grad_desc_config {
   /* Learning rate */
   double learn_rate;
 
-  /* Dimension of theta and input, or number of features + 1*/
+  /* Dimension of theta, or number of features + 1 */
   size_t dimension;
 
   /* Loss reporter: takes in epoch count and loss */

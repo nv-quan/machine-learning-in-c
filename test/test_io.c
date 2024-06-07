@@ -12,6 +12,13 @@
 void init_dlconf_file(DLConf *conf);
 void init_dlconf_mem(DLConf *conf);
 
+static const char example_mem[] =
+    "1,2012.917,32,84.87882,10,24.98298,121.54024,37.9\n2,2012.917,19.5,306."
+    "5947,9,24.98034,121.53951,42.2\n3,2013.583,13.3,561.9845,5,24.98746,121."
+    "54391,47.3\n4,2013.500,13.3,561.9845,5,24.98746,121.54391,54.8\n5,2012."
+    "833,5,390.5684,5,24.97937,121.54245,43.1\n6,2012.667,7.1,2175.03,3,24."
+    "96305,121.51254,32.1";
+
 int
 test_point_io_file(char *name) {
   DLConf conf;
@@ -53,6 +60,131 @@ test_point_io_file(char *name) {
     goto cleanup;
   }
   for (i = 0; i < 3; ++i) {
+    if (!double_eq(point.x[i], x[i])) {
+      fprintf(
+          stderr,
+          "test_point_io_file: expect point's x[%d] to be %lf, actual: %lf\n",
+          i, x[i], point.x[i]);
+      retval = 0;
+      goto cleanup;
+    }
+  }
+  retval = 1;
+cleanup:
+  destroy_dat_loader(loader);
+  return retval;
+}
+
+int
+test_point_io_file_insert_one(char *name) {
+  DLConf conf;
+  Point point;
+  int n, i, retval, feature_columns[] = {2, 3, 4};
+  double y = 37.9f, x[] = {1.0f, 32.0f, 84.87882f, 10.0f};
+
+  strcpy(name, "Test point io file insert one");
+  strcpy(conf.file_path, TCF_CSV_PATH);
+  conf.x_dim = 4;
+  for (i = 0; i < 3; ++i) {
+    conf.x_cols[i + 1] = feature_columns[i];
+  }
+  conf.y_col = 7;
+  conf.options = DL_HAS_HEADER | DL_INSERT_ONE;
+  DatLoader *loader = make_data_loader(&conf);
+  if ((n = load_data(loader, 1, &point)) != 1) {
+    fprintf(stderr,
+            "test_point_io_file: expect load_data to return 1, actual: %d\n",
+            n);
+    retval = 0;
+    goto cleanup;
+  }
+  if (ld_err(loader)) {
+    fprintf(
+        stderr,
+        "test_point_io_file: expect load_data to not have error, actual: %d\n",
+        loader->err);
+    retval = 0;
+    goto cleanup;
+  }
+  if (point.x_length != 4) {
+    fprintf(
+        stderr,
+        "test_point_io_file: expect point's dimension to be %d, actual: %lu\n",
+        4, point.x_length);
+    retval = 0;
+    goto cleanup;
+  }
+  if (!double_eq(point.y, y)) {
+    fprintf(stderr,
+            "test_point_io_file: expect point's y to be %lf, actual: %lf\n", y,
+            point.y);
+    retval = 0;
+    goto cleanup;
+  }
+  for (i = 0; i < 4; ++i) {
+    if (!double_eq(point.x[i], x[i])) {
+      fprintf(
+          stderr,
+          "test_point_io_file: expect point's x[%d] to be %lf, actual: %lf\n",
+          i, x[i], point.x[i]);
+      retval = 0;
+      goto cleanup;
+    }
+  }
+  retval = 1;
+cleanup:
+  destroy_dat_loader(loader);
+  return retval;
+}
+
+int
+test_point_io_mem_insert_one(char *name) {
+  DLConf conf;
+  Point point;
+  int n, i, retval, feature_columns[] = {2, 3, 4};
+  double y = 37.9f, x[] = {1.0f, 32.0f, 84.87882f, 10.0f};
+
+  strcpy(name, "Test point io mem insert one");
+  conf.x_dim = 4;
+  for (i = 0; i < 3; ++i) {
+    conf.x_cols[i + 1] = feature_columns[i];
+  }
+  conf.y_col = 7;
+  conf.options = DL_MEM_BASED | DL_INSERT_ONE;
+  conf.mem = (void *)example_mem;
+  conf.mem_size = sizeof(example_mem);
+  DatLoader *loader = make_data_loader(&conf);
+  if ((n = load_data(loader, 1, &point)) != 1) {
+    fprintf(stderr,
+            "test_point_io_file: expect load_data to return 1, actual: %d\n",
+            n);
+    retval = 0;
+    goto cleanup;
+  }
+  if (ld_err(loader)) {
+    fprintf(
+        stderr,
+        "test_point_io_file: expect load_data to not have error, actual: %d\n",
+        loader->err);
+    retval = 0;
+    goto cleanup;
+  }
+  if (point.x_length != 4) {
+    fprintf(
+        stderr,
+        "test_point_io_file: expect point's dimension to be %d, actual: %lu\n",
+        4, point.x_length);
+    retval = 0;
+    goto cleanup;
+  }
+  if (!double_eq(point.y, y)) {
+    fprintf(stderr,
+            "test_point_io_file: expect point's y to be %lf, actual: %lf\n", y,
+            point.y);
+    retval = 0;
+    goto cleanup;
+  }
+  for (i = 0; i < 4; ++i) {
     if (!double_eq(point.x[i], x[i])) {
       fprintf(
           stderr,
@@ -196,6 +328,44 @@ cleanup:
 }
 
 int
+test_continuous_loader_file_insert_one(char *name) {
+  DLConf conf;
+  Point point1;
+  int n, i, retval, feature_columns[] = {2, 3, 4};
+  double x[] = {1.0, 1.5, 23.38284, 7}, y = 47.7;
+
+  strcpy(name, "Test continuous loader file insert one");
+
+  snprintf(conf.file_path, 1000, "%s", TCF_CSV_PATH);
+  conf.x_dim = 4;
+  for (i = 0; i < 3; ++i) {
+    conf.x_cols[i + 1] = feature_columns[i];
+  }
+  conf.y_col = 7;
+  conf.options = DL_HAS_HEADER | DL_INSERT_ONE;
+  DatLoader *loader = make_data_loader(&conf);
+  for (i = 0; i < 20 && (n = load_data(loader, 1, &point1)) > 0; i++) {
+  }
+
+  if (x[0] != point1.x[0] || x[1] != point1.x[1] || x[2] != point1.x[2] ||
+      x[3] != point1.x[3]) {
+    fprintf(stderr,
+            "test_continuous_loader_file3: wrong point 20, expect x1 = %lf, x2 "
+            "= %lf, x3 = %lf, x4 = %lf, y = %lf, actual x1 = %lf, x2 = %lf, x3 "
+            "= %lf, x4 = %lf, y "
+            "= %lf\n",
+            x[0], x[1], x[2], x[3], y, point1.x[0], point1.x[1], point1.x[2],
+            point1.x[3], point1.y);
+    retval = 0;
+    goto cleanup;
+  }
+  retval = 1;
+cleanup:
+  destroy_dat_loader(loader);
+  return retval;
+}
+
+int
 test_continuous_loader_mem1(char *name) {
   DLConf conf;
   Point point1;
@@ -286,16 +456,8 @@ init_dlconf_file(DLConf *conf) {
     conf->x_cols[i] = feature_columns[i];
   }
   conf->y_col = 7;
-  conf->has_header = 1;
-  conf->is_mem = 0;
+  conf->options = DL_HAS_HEADER;
 }
-
-static const char example_mem[] =
-    "1,2012.917,32,84.87882,10,24.98298,121.54024,37.9\n2,2012.917,19.5,306."
-    "5947,9,24.98034,121.53951,42.2\n3,2013.583,13.3,561.9845,5,24.98746,121."
-    "54391,47.3\n4,2013.500,13.3,561.9845,5,24.98746,121.54391,54.8\n5,2012."
-    "833,5,390.5684,5,24.97937,121.54245,43.1\n6,2012.667,7.1,2175.03,3,24."
-    "96305,121.51254,32.1";
 
 void
 init_dlconf_mem(DLConf *conf) {
@@ -307,8 +469,7 @@ init_dlconf_mem(DLConf *conf) {
     conf->x_cols[i] = feature_columns[i];
   }
   conf->y_col = 7;
-  conf->has_header = 0;
-  conf->is_mem = 1;
+  conf->options = DL_MEM_BASED;
   conf->mem = (void *)example_mem;
   conf->mem_size = sizeof(example_mem);
 }
@@ -321,7 +482,7 @@ test_make_data_loader(char *name) {
   int i;
 
   strcpy(name, "Test make data loader");
-  conf1.is_mem = 0;
+  conf1.options = 0;
   conf1.mem = NULL;
   conf1.mem_size = 0;
   strcpy(conf1.file_path, "test/test_data.csv");

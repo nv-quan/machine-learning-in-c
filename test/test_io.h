@@ -10,5 +10,8 @@ int test_continuous_loader_file3(char *name);
 int test_continuous_loader_mem1(char *name);
 int test_continuous_loader_mem2(char *name);
 int test_continuous_loader_mem3(char *name);
+int test_point_io_file_insert_one(char *name);
+int test_point_io_mem_insert_one(char *name);
+int test_continuous_loader_file_insert_one(char *name);
 
 #endif /* TEST_IO_H */

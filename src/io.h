@@ -12,23 +12,29 @@
 
 enum loader_err { NOERR, CSV_ERR, FILE_ERR, MEM_ERR };
 
+/* Data loader options */
+#define DL_MEM_BASED 1
+#define DL_HAS_HEADER (1 << 1)
+#define DL_INSERT_ONE (1 << 2)
+
 typedef struct data_loader_config {
-  int is_mem;      /* Check if the data comes from the memory or disk */
+  char options;    /* Data loader options */
   void *mem;       /* If is_mem is non-zero then this will store all the data,
                       otherwise this is NULL */
   size_t mem_size; /* Size of data in memory if is_mem is non-zero,
                       otherwise this is 0 */
-  int has_header;  /* Non-zero if the csv file has header, 0 if not */
-  size_t x_dim;    /* Dimension of X */
+  size_t x_dim;    /* Dimension of X, including the first 1 when applicable */
   int y_col;       /* Column from table for y */
-  int x_cols[CF_FEAT_DIM];     /* Columns from table for x (features) */
+  /* Columns from table for x (features). When options has DL_INSERT_ONE,
+   * the first member of x_cols is not read when data is loaded. */
+  int x_cols[CF_MAX_DIM];
   char file_path[CF_PATH_LEN]; /* File path */
 } DLConf;
 
 /* Augmented data structure for point */
 typedef struct point_aug {
   size_t x_length;
-  int x_filled[CF_FEAT_DIM];
+  int x_filled[CF_MAX_DIM];
   int y_filled;
 } PointAug;
 
@@ -47,6 +53,15 @@ typedef struct data_loader {
  * Return non-zero if true (returns error code)
  */
 int ld_err(DatLoader *loader);
+
+/* Check if the loader config is memory based */
+int is_mem_based(DLConf *conf);
+
+/* Check if the data source has header */
+int has_header(DLConf *conf);
+
+/* Check if 1 will be inserted into the first x field */
+int is_one_insered(DLConf *conf);
 
 /* Load Data
  *

@@ -33,7 +33,7 @@ DType d_numarr_type(const DNumberArray *numarr);
 /* (x, y) data point where x is array of n length and y is double */
 typedef struct point_data {
   size_t x_length;
-  double x[CF_FEAT_DIM];
+  double x[CF_MAX_DIM];
   double y;
 } Point;
 

@@ -24,9 +24,6 @@ static double *theta;
 static GDConf *config;
 static DLConf *loader_conf;
 
-/* TODO: Refactor to put ld_conf to gd_conf because x_dim and dimension
- * overlaps
- */
 int
 grad_desc(GDConf *gd_conf, DLConf *ld_conf, double *result) {
   int epoch = 0;
@@ -109,7 +106,7 @@ sgd(DatLoader *loader) {
   Point point;
   double coeff;
   size_t dim = config->dimension;
-  double temp[CF_FEAT_DIM];
+  double temp[CF_MAX_DIM];
   size_t size = 0;
   int retval = 0;
 
@@ -142,6 +139,6 @@ init_theta() {
     theta[i] = 0;
   }
 #ifdef DEBUG_H
-  print_arr("initialized theta", theta, config->dimension);
+  print_arr("initialized theta", theta, config->dimension + 1);
 #endif
 }

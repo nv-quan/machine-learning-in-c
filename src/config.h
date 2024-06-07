@@ -17,5 +17,6 @@
 #define CF_FEAT_COLS {2, 3, 4}
 
 #define CF_OUTPUT_COL 7
+#define CF_MAX_DIM 100
 
 #endif /* ifndef CONFIG_H */

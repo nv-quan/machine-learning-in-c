@@ -14,7 +14,7 @@ int
 main(void) {
   GDConf grad_desc_conf;
   DLConf data_loader_conf;
-  double result[CF_FEAT_DIM];
+  double result[CF_MAX_DIM];
 
   init_grad_desc_conf(&grad_desc_conf);
   init_loader_conf(&data_loader_conf);
@@ -26,7 +26,7 @@ static void
 init_grad_desc_conf(GDConf *conf) {
   conf->batch_size = CF_BATCH_SZ;
   conf->learn_rate = CF_LRATE;
-  conf->dimension = CF_FEAT_DIM;
+  conf->dimension = CF_FEAT_DIM + 1;
   conf->loss_reporter = report_loss;
 }
 
@@ -40,8 +40,7 @@ init_loader_conf(DLConf *conf) {
   int i;
   int feature_columns[] = CF_FEAT_COLS;
 
-  conf->is_mem = 0;
-  conf->has_header = 1;
+  conf->options = DL_HAS_HEADER;
   conf->x_dim = CF_FEAT_DIM;
   for (i = 0; i < CF_FEAT_DIM; ++i) {
     conf->x_cols[i] = feature_columns[i];

@@ -38,15 +38,16 @@ static size_t parse_buf(DatLoader *loader, char *buf, size_t len, CsvCtx *ctx);
 static int finish_parsing(DatLoader *loader, CsvCtx *ctx);
 
 static void init_csv_ctx(CsvCtx *ctx, Point *buf, int len, DatLoader *loader);
-static int is_point_full(const PointAug *data);
-static int is_point_empty(const PointAug *data);
-static void reset_point_aug(PointAug *data);
+static int is_point_full(const PointAug *data, int is_one_inserted);
+static int is_point_empty(const PointAug *data, int is_one_inserted);
+static void reset_point_aug(PointAug *data, int is_one_inserted);
 
 static int
 is_ctx_full(CsvCtx *context) {
   return context->point_idx >= context->points_len;
 }
 
+/* TODO: Add insert 1 option */
 static size_t
 load_data_file(DatLoader *loader, size_t nsize, Point *points) {
   size_t sz_read, sz_parse; /* bytes count */
@@ -54,10 +55,13 @@ load_data_file(DatLoader *loader, size_t nsize, Point *points) {
   char buffer[BUFFER_SIZE];
   FILE *fp = loader->fp;
   long n;
-  int ferr, file_eof;
+  int ferr, file_eof, is_one_isrt;
 
   if (nsize == 0) return 0;
+  is_one_isrt = is_one_insered(&loader->dl_conf);
 
+  /* Make the first field of the first point 1 */
+  if (is_one_isrt) points[0].x[0] = 1.0f;
   /* pointers lifetime is same with load_data */
   init_csv_ctx(&ctx, points, nsize, loader);
 
@@ -94,7 +98,7 @@ load_data_file(DatLoader *loader, size_t nsize, Point *points) {
 
   /* This means eof is encountered but not all fields are filled */
   if (!is_ctx_full(&ctx) && !ld_err(loader) &&
-      !is_point_empty(&ctx.point_aug)) {
+      !is_point_empty(&ctx.point_aug, is_one_isrt)) {
     rp_err("load_data_file: Warning, file is not completed.");
     /* Allows program to continue */
   }
@@ -112,6 +116,7 @@ load_data_mem(DatLoader *loader, size_t nsize, Point *points) {
   CsvCtx ctx;
   DLConf *conf;
   char *mem;
+  int is_one_isrt;
 
   if (nsize == 0) return 0;
 
@@ -128,6 +133,8 @@ load_data_mem(DatLoader *loader, size_t nsize, Point *points) {
     loader->err = MEM_ERR;
     return 0;
   }
+  is_one_isrt = is_one_insered(conf);
+  if (is_one_isrt) points[0].x[0] = 1.0f;
   init_csv_ctx(&ctx, points, nsize, loader);
 
   if (!(n = parse_buf(loader, mem + mem_idx, mem_size - mem_idx, &ctx))) {
@@ -148,7 +155,7 @@ load_data_mem(DatLoader *loader, size_t nsize, Point *points) {
   /* Here, either ctx is full or not. If ctx is full, parse_buf guarantee
    * point_aug to be empty. If ctx is not full, that means the memory runs out
    * of data before all fields are filled */
-  if (!is_point_empty(&ctx.point_aug)) {
+  if (!is_point_empty(&ctx.point_aug, is_one_isrt)) {
     rp_err("load_data_mem: Data format issue");
     /* Allow continuing of program */
   }
@@ -159,7 +166,7 @@ load_data_mem(DatLoader *loader, size_t nsize, Point *points) {
 size_t
 load_data(DatLoader *loader, size_t nsize, Point *points) {
   size_t (*caller)(DatLoader *, size_t, Point *);
-  caller = (loader->dl_conf.is_mem ? load_data_mem : load_data_file);
+  caller = (is_mem_based(&loader->dl_conf) ? load_data_mem : load_data_file);
   return caller(loader, nsize, points);
 }
 
@@ -203,7 +210,7 @@ make_data_loader(DLConf *conf) {
     goto failed;
   }
 
-  if (conf->is_mem) {
+  if (is_mem_based(conf)) {
     loader->mem_idx = 0;
     loader->fp = NULL;
   } else {
@@ -229,7 +236,7 @@ failed:
 void
 destroy_dat_loader(DatLoader *dat_loader) {
   if (!dat_loader) return; /* Nothing to destroy */
-  if (!dat_loader->dl_conf.is_mem && dat_loader->fp) {
+  if (!is_mem_based(&dat_loader->dl_conf) && dat_loader->fp) {
     fclose(dat_loader->fp);
   }
   csv_fini(dat_loader->csv_prs, csv_eofld, csv_eor, NULL);
@@ -243,11 +250,26 @@ ld_err(DatLoader *loader) {
   return loader->err;
 }
 
+int
+is_mem_based(DLConf *conf) {
+  return conf->options & DL_MEM_BASED;
+}
+
+int
+is_one_insered(DLConf *conf) {
+  return conf->options & DL_INSERT_ONE;
+}
+
+int
+has_header(DLConf *conf) {
+  return conf->options & DL_HAS_HEADER;
+}
+
 static void
 init_csv_ctx(CsvCtx *ctx, Point *points, int len, DatLoader *loader) {
   int i;
 
-  ctx->begin_row = loader->dl_conf.has_header;
+  ctx->begin_row = has_header(&loader->dl_conf) ? 1 : 0;
   ctx->field_idx = 0;
   ctx->row_idx = loader->record_loaded;
   ctx->point_idx = 0;
@@ -255,7 +277,7 @@ init_csv_ctx(CsvCtx *ctx, Point *points, int len, DatLoader *loader) {
   ctx->points = points;
   ctx->loader = loader;
   ctx->point_aug.x_length = loader->dl_conf.x_dim;
-  reset_point_aug(&ctx->point_aug);
+  reset_point_aug(&ctx->point_aug, is_one_insered(&loader->dl_conf));
   /* ctx->point_aug = loader->unproc_dat_aug; */
 }
 
@@ -263,9 +285,8 @@ static void
 csv_eofld(void *dat, size_t len, void *custom) {
   CsvCtx *ctx;
   double value;
-  DLConf *loader_conf;
-  int cur_field_idx;
-  int i;
+  DLConf *conf;
+  int i, cur_field_idx;
 
   ctx = (CsvCtx *)custom;
   cur_field_idx = ctx->field_idx++;
@@ -277,11 +298,11 @@ csv_eofld(void *dat, size_t len, void *custom) {
   }
   if (ctx->row_idx < ctx->begin_row) return;
 
-  loader_conf = &ctx->loader->dl_conf;
+  conf = &ctx->loader->dl_conf;
   /* TODO: Do strtod error handling */
   value = strtod((char *)dat, NULL);
 
-  if (cur_field_idx == loader_conf->y_col) {
+  if (cur_field_idx == conf->y_col) {
     if (ctx->point_aug.y_filled) {
       rp_err("csv_eofld: called on y but y is already filled.");
       return;
@@ -290,8 +311,10 @@ csv_eofld(void *dat, size_t len, void *custom) {
     ctx->point_aug.y_filled = 1;
     return;
   }
-  for (i = 0; i < loader_conf->x_dim; ++i) {
-    if (cur_field_idx != loader_conf->x_cols[i]) continue;
+  /* Do not touch the first field, since it is always 1 when is_one_inserted is
+   * true */
+  for (i = is_one_insered(conf) ? 1 : 0; i < conf->x_dim; ++i) {
+    if (cur_field_idx != conf->x_cols[i]) continue;
     if (ctx->point_aug.x_filled[i]) {
       rp_err("csv_eofld: called on x but it is already filled.");
       return;
@@ -303,40 +326,44 @@ csv_eofld(void *dat, size_t len, void *custom) {
 }
 
 static int
-is_point_full(const PointAug *data) {
+is_point_full(const PointAug *data, int is_one_inserted) {
   int i, result;
 
   result = data->y_filled;
-  for (i = 0; i < data->x_length; ++i) {
+  for (i = is_one_inserted ? 1 : 0; i < data->x_length; ++i) {
     result = result && data->x_filled[i];
   }
   return result;
 }
 
 static int
-is_point_empty(const PointAug *data) {
+is_point_empty(const PointAug *data, int is_one_inserted) {
   int i, result;
 
   result = !data->y_filled;
-  for (i = 0; i < data->x_length; ++i) {
+  for (i = is_one_inserted ? 1 : 0; i < data->x_length; ++i) {
     result = result && !data->x_filled[i];
   }
   return result;
 }
 
 static void
-reset_point_aug(PointAug *data) {
+reset_point_aug(PointAug *data, int is_one_inserted) {
   int i;
 
   data->y_filled = 0;
   for (i = 0; i < data->x_length; ++i) {
     data->x_filled[i] = 0;
   }
+  if (is_one_inserted) {
+    data->x_filled[0] = 1;
+  }
 }
 
 static void
 csv_eor(int c, void *custom) {
   CsvCtx *ctx = (CsvCtx *)custom;
+  int is_one_isrt = is_one_insered(&ctx->loader->dl_conf);
   ctx->field_idx = 0;
   ctx->row_idx++;
   /* Most of the time, point will be full. But there are cases where this is not
@@ -345,8 +372,9 @@ csv_eor(int c, void *custom) {
    * 2. The read buffer ends before all the fields are read. This is handled in
    * load_data
    */
-  if (!is_point_full(&ctx->point_aug)) return;
+  if (!is_point_full(&ctx->point_aug, is_one_isrt)) return;
   /* x_length must be set to complete filling point data */
   ctx->points[ctx->point_idx++].x_length = ctx->loader->dl_conf.x_dim;
-  reset_point_aug(&ctx->point_aug);
+  if (is_one_isrt) ctx->points[ctx->point_idx].x[0] = 1.0f;
+  reset_point_aug(&ctx->point_aug, is_one_isrt);
 }
