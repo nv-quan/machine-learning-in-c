@@ -2,6 +2,7 @@
 # Compiler
 CC = gcc
 
+# TODO: Turn on warnings
 # Compiler flags
 CFLAGS = -std=c89 -I./src
 TEST_CFLAGS = -std=c89 -I./test -I./src

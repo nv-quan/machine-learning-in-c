@@ -47,7 +47,6 @@ is_ctx_full(CsvCtx *context) {
   return context->point_idx >= context->points_len;
 }
 
-/* TODO: Add insert 1 option */
 static size_t
 load_data_file(DatLoader *loader, size_t nsize, Point *points) {
   size_t sz_read, sz_parse; /* bytes count */
@@ -239,7 +238,6 @@ destroy_dat_loader(DatLoader *dat_loader) {
   if (!is_mem_based(&dat_loader->dl_conf) && dat_loader->fp) {
     fclose(dat_loader->fp);
   }
-  csv_fini(dat_loader->csv_prs, csv_eofld, csv_eor, NULL);
   csv_free(dat_loader->csv_prs);
   safe_free((void **)&dat_loader->csv_prs);
   safe_free((void **)&dat_loader);

@@ -28,6 +28,10 @@ typedef struct grad_desc_config {
 
   /* Loss reporter: takes in epoch count and loss */
   void (*loss_reporter)(int, double);
+
+  /* Stop condition: takes in epoch count and loss and signifiy when to stop
+   * running */
+  int (*stop_cond)(int, double);
 } GDConf;
 
 /* Run gradient descent to minimize cost function and return result into

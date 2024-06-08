@@ -5,7 +5,8 @@
 #include "config.h"
 #include "custom_math.h"
 #include "data.h"
-#include "debug.h"
+/* #include "debug.h" */
+#include "assert.h"
 #include "io.h"
 #include "utils.h"
 
@@ -14,7 +15,7 @@
  * Run 1 epoch (1 pass) through all training examples loader is borrowed from
  * caller
  */
-static int sgd(DatLoader *loader);
+static int do_gd(DatLoader *loader);
 static void init_theta();
 
 /* Calculate loss function. Return loss on success and -1 on error */
@@ -23,21 +24,20 @@ static double calc_loss();
 static double *theta;
 static GDConf *config;
 static DLConf *loader_conf;
+static int default_stop_cond(int epoch, double loss);
 
 int
-grad_desc(GDConf *gd_conf, DLConf *ld_conf, double *result) {
-  int epoch = 0;
-  int max_epoch = 150;
-  int current_loss;
+grad_desc(GDConf *gd_conf, DLConf *conf, double *result) {
+  int i, current_loss, retval;
   double loss_result;
   DatLoader *loader;
-  int retval;
+  int (*stop_cond)(int, double);
 
   /* Borrow pointers. All of the following pointers have lifetimes equivalent
    * to grad_desc */
   theta = result;
   config = gd_conf;
-  loader_conf = ld_conf;
+  loader_conf = conf;
 
   init_theta();
   if (config->batch_size == 0) {
@@ -45,16 +45,18 @@ grad_desc(GDConf *gd_conf, DLConf *ld_conf, double *result) {
     retval = FALSE;
     goto cleanup;
   }
-  if (config->batch_size == 1) {
-    /* Stochastic gradient descent */
-    while ((loader = make_data_loader(ld_conf)) && sgd(loader) &&
-           epoch++ < max_epoch) {
-      if (config->loss_reporter) {
-        config->loss_reporter(epoch - 1, calc_loss());
-      }
-      destroy_dat_loader(loader);
-    };
-  }
+  i = 0;
+  if (config->stop_cond)
+    stop_cond = config->stop_cond;
+  else
+    stop_cond = default_stop_cond;
+  while ((loader = make_data_loader(conf)) && do_gd(loader)) {
+    i++;
+    loss_result = calc_loss();
+    if (config->loss_reporter) config->loss_reporter(i - 1, loss_result);
+    destroy_dat_loader(loader);
+    if (stop_cond(i, loss_result)) break;
+  };
   retval = TRUE;
 
   /* Prevent accidentally accessing these variables after grad_desc finishes */
@@ -65,15 +67,18 @@ cleanup:
   return retval;
 }
 
+static int
+default_stop_cond(int epoch, double loss) {
+  return epoch >= 150;
+}
+
 static double
 calc_loss() {
   int i;
   size_t n;
-  double loss = 0;
+  double dot_result, loss = 0;
   DatLoader *loader;
-  Point buffer[BUFFER_SIZE];
-  Point *curr;
-  double dot_result;
+  Point buffer[BUFFER_SIZE], *curr;
 
   if ((loader = make_data_loader(loader_conf)) == NULL) {
     rp_err("Calculate loss error, can't make data loader");
@@ -101,24 +106,39 @@ calc_loss() {
   return loss;
 }
 
+static double
+calc_coef(Point *points, size_t len, size_t dim, double alpha) {
+  double coef;
+
+  while (len--) {
+    coef += alpha * (points[len].y - dot_product(theta, points[len].x, dim));
+  }
+  return coef;
+}
+
 int
-sgd(DatLoader *loader) {
-  Point point;
-  double coeff;
-  size_t dim = config->dimension;
-  double temp[CF_MAX_DIM];
-  size_t size = 0;
+do_gd(DatLoader *loader) {
+  Point points[CF_MAX_BUF_SIZE];
+  double coeff, temp[CF_MAX_DIM];
+  size_t size, dim, batch_sz;
   int retval = 0;
 
 #ifdef DEBUG_H
   print_arr("theta entering sgd", theta, config->dimension);
 #endif
-  while (!(ld_err(loader)) && (size = load_data(loader, 1, &point)) > 0) {
-    coeff = dot_product(point.x, theta, dim);
-    coeff = config->learn_rate * (point.y - coeff);
-    vec_mul(temp, point.x, coeff, dim);
-    vec_add(theta, theta, temp, dim);
+  dim = config->dimension;
+  batch_sz = config->batch_size;
+
+  if (batch_sz > sizeof(points)) {
+    fprintf(stderr, "Batch size too big, use size <= %lu\n", sizeof(points));
+    retval = FALSE;
+  }
+  while (!(ld_err(loader)) &&
+         (size = load_data(loader, batch_sz, points)) > 0) {
+    /*vec_mul(temp, points.x, coeff, dim);
+    vec_add(theta, theta, temp, dim); */
 #ifdef DEBUG_H
+    printf("coeff: %lf\n", coeff);
     print_arr("theta after add", theta, config->dimension);
 #endif
   }

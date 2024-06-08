@@ -19,6 +19,7 @@ main(void) {
   init_grad_desc_conf(&grad_desc_conf);
   init_loader_conf(&data_loader_conf);
   grad_desc(&grad_desc_conf, &data_loader_conf, result);
+  printf("Result: %lf, %lf\n", result[0], result[1]);
   return 0;
 }
 
@@ -26,7 +27,7 @@ static void
 init_grad_desc_conf(GDConf *conf) {
   conf->batch_size = CF_BATCH_SZ;
   conf->learn_rate = CF_LRATE;
-  conf->dimension = CF_FEAT_DIM + 1;
+  conf->dimension = 2;
   conf->loss_reporter = report_loss;
 }
 
@@ -35,16 +36,36 @@ report_loss(int epoch, double loss) {
   printf("Epoch %d: %lf\n", epoch, loss);
 }
 
+static char data[] =
+    "-1.605793084,0.3\n"
+    "-1.436762233, 0.2\n"
+    "-1.267731382, 0.24\n"
+    "-1.098700531, 0.33\n"
+    "-0.92966968, 0.35\n"
+    "-0.760638829, 0.28\n"
+    "-0.591607978, 0.61\n"
+    "-0.422577127, 0.38\n"
+    "-0.253546276, 0.38\n"
+    "-0.084515425, 0.42\n"
+    "0.084515425, 0.51\n"
+    "0.253546276, 0.6\n"
+    "0.422577127, 0.55\n"
+    "0.591607978, 0.56\n"
+    "0.760638829, 0.53\n"
+    "0.92966968, 0.61\n"
+    "1.098700531, 0.65\n"
+    "1.267731382, 0.68\n"
+    "1.436762233, 0.74\n"
+    "1.605793084}, 0.87";
+
 static void
 init_loader_conf(DLConf *conf) {
   int i;
-  int feature_columns[] = CF_FEAT_COLS;
 
-  conf->options = DL_HAS_HEADER;
-  conf->x_dim = CF_FEAT_DIM;
-  for (i = 0; i < CF_FEAT_DIM; ++i) {
-    conf->x_cols[i] = feature_columns[i];
-  }
-  conf->y_col = CF_OUTPUT_COL;
-  strcpy(conf->file_path, CF_CSV_PATH);
+  conf->options = DL_INSERT_ONE | DL_MEM_BASED;
+  conf->x_dim = 2;
+  conf->x_cols[1] = 0;
+  conf->y_col = 1;
+  conf->mem = data;
+  conf->mem_size = sizeof(data);
 }

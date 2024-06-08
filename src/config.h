@@ -10,7 +10,7 @@
 /* Feature dimension */
 #define CF_FEAT_DIM 3
 /* Learning rate */
-#define CF_LRATE 0.1
+#define CF_LRATE 0.01
 /* Batch size */
 #define CF_BATCH_SZ 1
 
@@ -18,5 +18,6 @@
 
 #define CF_OUTPUT_COL 7
 #define CF_MAX_DIM 100
+#define CF_MAX_BUF_SIZE 1024
 
 #endif /* ifndef CONFIG_H */
