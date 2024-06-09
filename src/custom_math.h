@@ -2,6 +2,8 @@
 #define CUSTOM_MATH_H
 #include <stdlib.h>
 
+#include "data.h"
+
 /* Calculate dot product of 2 vector a and b */
 double dot_product(double *a, double *b, size_t dimension);
 
@@ -27,5 +29,15 @@ void mat_add(double *r, double *a, double *b, size_t s1, size_t s2);
 
 /* Inplace transpose a s1 x s2 matrix to s2 x s1 matrix */
 void mat_transpose(double *mat, size_t s1, size_t s2);
+
+/* Matrix multiplication using Mat, return 0 on success and non-zero on
+ * failure */
+int mmat_mul(Mat *r, Mat *a, Mat *b);
+
+/* Matrix addition using Mat, return - on success and non-zero on failure */
+int mmat_add(Mat *r, Mat *a, Mat *b);
+
+/* Matrix transpose using Mat */
+void mmat_transpose(Mat *mat);
 
 #endif /* ifndef CUSTOM_MATH_H */

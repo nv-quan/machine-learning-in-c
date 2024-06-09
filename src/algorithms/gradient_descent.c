@@ -119,7 +119,7 @@ calc_coef(Point *points, size_t len, size_t dim, double alpha) {
 int
 do_gd(DatLoader *loader) {
   Point points[CF_MAX_BUF_SIZE];
-  double coeff, temp[CF_MAX_DIM];
+  double coeff, temp[CF_MAX_DIM], x_mat[CF_MAX_BUF_SIZE * CF_MAX_DIM];
   size_t size, dim, batch_sz;
   int retval = 0;
 

@@ -1,5 +1,9 @@
 #include "custom_math.h"
 
+#include <arm_neon.h>
+
+#include "data.h"
+
 double
 dot_product(double *a, double *b, size_t dimension) {
   double result = 0;
@@ -17,7 +21,6 @@ vec_mul(double *result, double *vec, double s, size_t dimension) {
   while (dimension--) result[dimension] = s * vec[dimension];
 }
 
-/* Naive implementation of matrix multiplication */
 void
 mat_mul(double *r, double *a, double *b, size_t s1, size_t s2, size_t s3) {
   size_t i, j, k;
@@ -65,4 +68,28 @@ mat_transpose(double *mat, size_t s1, size_t s2) {
     }
     mat[c] = temp;
   }
+}
+
+int
+mmat_mul(Mat *r, Mat *a, Mat *b) {
+  if (r->row != a->row || r->col != b->col || a->col != b->row) {
+    return -1;
+  }
+  mat_mul(r->val, a->val, b->val, a->row, a->col, b->col);
+  return 0;
+}
+
+int
+mmat_add(Mat *r, Mat *a, Mat *b) {
+  if (a->col != b->col || a->row != b->row || a->col != r->col ||
+      a->row != r->row) {
+    return -1;
+  }
+  mat_add(r->val, a->val, b->val, a->col, b->col);
+  return 0;
+}
+
+void
+mmat_transpose(Mat *mat) {
+  mat_transpose(mat->val, mat->row, mat->col);
 }
