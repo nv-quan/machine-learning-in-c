@@ -85,11 +85,23 @@ mmat_add(Mat *r, Mat *a, Mat *b) {
       a->row != r->row) {
     return -1;
   }
-  mat_add(r->val, a->val, b->val, a->col, b->col);
+  mat_add(r->val, a->val, b->val, a->col, a->row);
   return 0;
 }
 
 void
 mmat_transpose(Mat *mat) {
+  double temp;
   mat_transpose(mat->val, mat->row, mat->col);
+  temp = mat->col;
+  mat->col = mat->row;
+  mat->row = temp;
+}
+
+void
+mmat_neg(Mat *mat) {
+  size_t i;
+  for (i = 0; i < mat->col * mat->row; ++i) {
+    mat->val[i] = -mat->val[i];
+  }
 }

@@ -2,6 +2,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include "utils.h"
 
@@ -35,10 +36,32 @@ destr_mat(Mat *mat) {
 }
 
 Mat *
-creat_mat_from_x(Point *points, size_t len) {
-  Mat *result;
-  if (len == 0) {
-    return NULL;
+creat_mat_from_val(double *val, size_t row, size_t col) {
+  Mat *res = creat_mat(row, col);
+  memcpy((void *)res->val, (const void *)val, sizeof(double) * row * col);
+  return res;
+}
+
+void
+set_mat_elem(Mat *mat, size_t i, size_t j, double val) {
+  mat->val[i * mat->col + j] = val;
+}
+
+double
+get_mat_elem(Mat *mat, size_t i, size_t j) {
+  return mat->val[i * mat->col + j];
+}
+
+void
+set_mat_row(Mat *mat, size_t row_idx, double *value) {
+  double *row = mat->val + mat->col * row_idx;
+  memcpy((void *)row, (const void *)value, sizeof(double) * mat->col);
+}
+
+void
+set_mat_col(Mat *mat, size_t col_idx, double *value) {
+  size_t i;
+  for (i = 0; i < mat->row; ++i) {
+    set_mat_elem(mat, i, col_idx, value[i]);
   }
-  result = creat_mat(points[0].x_length, len);
 }

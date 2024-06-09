@@ -34,10 +34,13 @@ void mat_transpose(double *mat, size_t s1, size_t s2);
  * failure */
 int mmat_mul(Mat *r, Mat *a, Mat *b);
 
-/* Matrix addition using Mat, return - on success and non-zero on failure */
+/* Matrix addition using Mat, return 0 on success and non-zero on failure */
 int mmat_add(Mat *r, Mat *a, Mat *b);
 
 /* Matrix transpose using Mat */
 void mmat_transpose(Mat *mat);
+
+/* mat = -mat */
+void mmat_neg(Mat *mat);
 
 #endif /* ifndef CUSTOM_MATH_H */

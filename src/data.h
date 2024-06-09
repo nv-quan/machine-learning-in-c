@@ -22,31 +22,18 @@ typedef struct matrix {
 /* Print the value of a point */
 void log_point(Point* point);
 
-/* Create a matrix using the x values from an array of points.
+/* Create a matrix from an array of values.
  *
  * Parameters:
- * - points: An array of points.
- * - len: The number of elements in the array.
+ * - val: Pointer to an array of double values to populate the matrix.
+ * - row: Number of rows in the matrix.
+ * - col: Number of columns in the matrix.
  *
  * Returns:
- * - A pointer to the created Mat if successful. The created matrix has a size
- *   of x_length x len.
+ * - A pointer to the created Mat if successful.
  * - NULL if unsuccessful.
  */
-Mat* creat_mat_from_x(Point* points, size_t len);
-
-/* Create a matrix using the y values from an array of points.
- *
- * Parameters:
- * - points: An array of points.
- * - len: The number of elements in the array.
- *
- * Returns:
- * - A pointer to the created Mat if successful. The created matrix has a size
- *   of 1 x len.
- * - NULL if unsuccessful.
- */
-Mat* creat_mat_from_y(Point* points, size_t len);
+Mat* creat_mat_from_val(double* val, size_t row, size_t col);
 
 /* Set matrix element. Users are responsible for checking the validity of this
  * operation.
@@ -71,6 +58,24 @@ void set_mat_elem(Mat* mat, size_t i, size_t j, double val);
  * - The value of the element at the specified position.
  */
 double get_mat_elem(Mat* mat, size_t i, size_t j);
+
+/* Set a row in a matrix.
+ *
+ * Parameters:
+ * - mat: Pointer to the Mat structure.
+ * - row_idx: Index of the row to be set.
+ * - value: Pointer to an array of double values to set in the specified row.
+ */
+void set_mat_row(Mat* mat, size_t row_idx, double* value);
+
+/* Set a column in a matrix.
+ *
+ * Parameters:
+ * - mat: Pointer to the Mat structure.
+ * - col_idx: Index of the column to be set.
+ * - value: Pointer to an array of double values to set in the specified column.
+ */
+void set_mat_col(Mat* mat, size_t col_idx, double* value);
 
 /* Create a new matrix of size row x col */
 Mat* creat_mat(size_t row, size_t col);
