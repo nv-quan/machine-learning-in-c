@@ -116,11 +116,32 @@ calc_coef(Point *points, size_t len, size_t dim, double alpha) {
   return coef;
 }
 
+Mat *
+make_points_mat_x(Point *points, size_t size) {
+  size_t i;
+  Mat *points_mat = creat_mat(points[0].x_length, size);
+  for (i = 0; i < size; ++i) {
+    set_mat_col(points_mat, i, points[i].x);
+  }
+  return points_mat;
+}
+
+Mat *
+make_points_mat_y(Point *points, size_t size) {
+  size_t i;
+  Mat *y = creat_mat(1, size);
+  for (i = 0; i < size; ++i) {
+    set_mat_col(y, i, &points[i].y);
+  }
+  return y;
+}
+
 int
 do_gd(DatLoader *loader) {
   Point points[CF_MAX_BUF_SIZE];
-  double coeff, temp[CF_MAX_DIM], x_mat[CF_MAX_BUF_SIZE * CF_MAX_DIM];
+  double coeff;
   size_t size, dim, batch_sz;
+  Mat *X, *Y, *Theta, *Theta_trans, *Temp;
   int retval = 0;
 
 #ifdef DEBUG_H
@@ -133,14 +154,39 @@ do_gd(DatLoader *loader) {
     fprintf(stderr, "Batch size too big, use size <= %lu\n", sizeof(points));
     retval = FALSE;
   }
+  Theta = creat_mat_from_val(theta, dim, 1);
+  Theta_trans = creat_mat_from_val(theta, dim, 1);
+  mmat_transpose(Theta_trans);
   while (!(ld_err(loader)) &&
          (size = load_data(loader, batch_sz, points)) > 0) {
+    X = make_points_mat_x(points, size);
+    Y = make_points_mat_y(points, size);
+    Temp = creat_mat(1, size);
+    if (mmat_mul(Temp, Theta_trans, X)) {
+      rp_err("do_gd: Can't do matrix multiplication");
+      destr_mat(Temp);
+      destr_mat(X);
+      destr_mat(Y);
+      return FALSE;
+    }
+    mmat_neg(Y);
+    if (mmat_add(Temp, Temp, Y)) {
+      rp_err("do_gd: Can't do matrix multiplication");
+      destr_mat(Temp);
+      destr_mat(X);
+      destr_mat(Y);
+      return FALSE;
+    }
+
     /*vec_mul(temp, points.x, coeff, dim);
     vec_add(theta, theta, temp, dim); */
 #ifdef DEBUG_H
     printf("coeff: %lf\n", coeff);
     print_arr("theta after add", theta, config->dimension);
 #endif
+    destr_mat(Temp);
+    destr_mat(X);
+    destr_mat(Y);
   }
   if (ld_err(loader)) {
     rp_err("SGD load data error");
@@ -148,6 +194,9 @@ do_gd(DatLoader *loader) {
   } else {
     retval = TRUE;
   }
+cleanup:
+  destr_mat(Theta);
+  destr_mat(Theta_trans);
   return retval;
 }
 

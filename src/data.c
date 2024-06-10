@@ -26,6 +26,7 @@ creat_mat(size_t row, size_t col) {
   mat->row = row;
   mat->col = col;
   mat->val = val;
+  mat->capacity = row * col;
   return mat;
 }
 
@@ -64,4 +65,8 @@ set_mat_col(Mat *mat, size_t col_idx, double *value) {
   for (i = 0; i < mat->row; ++i) {
     set_mat_elem(mat, i, col_idx, value[i]);
   }
+}
+
+void
+update_mat_size(Mat *mat, size_t row, size_t col) {
 }

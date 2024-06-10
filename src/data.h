@@ -16,6 +16,7 @@ typedef struct point_data {
 typedef struct matrix {
   size_t row;
   size_t col;
+  size_t capacity;
   double* val;
 } Mat;
 

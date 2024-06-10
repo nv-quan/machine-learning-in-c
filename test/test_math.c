@@ -10,6 +10,8 @@
 #include "test_math.h"
 #include "utils.h"
 
+/* TODO: Add capacity check in all mmat tests */
+
 int
 test_double_eq(char* test_name) {
   double a = 1.23456;
@@ -380,6 +382,9 @@ test_mmat_create(char* test_name) {
   } else if (mat->row != 3 || mat->col != 3) {
     fprintf(stderr, "%s: wrong matrix size\n", test_name);
     retval = 0;
+  } else if (mat->capacity != 9) {
+    fprintf(stderr, "%s: wrong capacity, expect %d, actual %lu\n", test_name, 9,
+            mat->capacity);
   } else {
     retval = 1;
   }
