@@ -50,19 +50,3 @@ modules.order
 Module.symvers
 Mkfile.old
 dkms.conf
-
-# Build dir
-build/*
-
-# Ctags
-tags
-
-# Vim temp files
-*.un~
-*.swp
-
-# Cscope
-cscope.files
-
-# Data files
-data/*
