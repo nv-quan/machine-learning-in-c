@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "algorithms/gradient_descent.h"
+#include "gradient_descent.h"
 #include "config.h"
 #include "data.h"
 #include "io.h"
