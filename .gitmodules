@@ -1,3 +1,0 @@
-[submodule "vendor/libcsv"]
-	path = vendor/libcsv
-	url = https://github.com/rgamble/libcsv
