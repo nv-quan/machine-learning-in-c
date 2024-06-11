@@ -17,8 +17,10 @@ AC_CONFIG_SRCDIR([src/main.c])
 # Compiler check
 AC_PROG_CC
 
+PKG_CHECK_MODULES([CHECK], [check >= 0.9.6])
+
 # Check if libcsv exists
-# CSVLIB will be used in src/Makefile.am
+# lcsv will be added automatically
 AC_CHECK_LIB([csv], [csv_init])
 
 # Create config.h from config.h.in
@@ -26,10 +28,6 @@ AC_CONFIG_HEADERS([config.h])
 
 # Automake creates FILE.in for each FILE that has FILE.am
 # Autoconf creates FILE from all FILE.in
-AC_CONFIG_FILES([
- Makefile
- src/Makefile
-])
-# tests/Makefile
+AC_CONFIG_FILES([Makefile src/Makefile tests/Makefile])
 
 AC_OUTPUT
