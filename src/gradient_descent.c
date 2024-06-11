@@ -28,7 +28,7 @@ static int default_stop_cond(int epoch, double loss);
 
 int
 grad_desc(GDConf *gd_conf, DLConf *conf, double *result) {
-  int i, current_loss, retval;
+  int i, retval;
   double loss_result;
   DatLoader *loader;
   int (*stop_cond)(int, double);

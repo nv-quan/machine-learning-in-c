@@ -1,2 +1,2 @@
-SUBDIRS = src
-dist_doc_DATA = README.md
+SUBDIRS = src . tests
+EXTRA_DIST = data
