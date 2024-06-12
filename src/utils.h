@@ -5,6 +5,8 @@
 #define FALSE 0
 #define TRUE 1
 
+#define UNUSED(x) (void)(x)
+
 void *safe_malloc(size_t size);
 void safe_free(void **pointer);
 void rp_err(char *msg);

@@ -8,7 +8,7 @@
 
 void
 log_point(Point *p) {
-  int i;
+  size_t i;
 
   printf("[POINT] y: %lf, x: ", p->y);
   for (i = 0; i < p->x_length; ++i) {

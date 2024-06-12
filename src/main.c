@@ -60,8 +60,6 @@ static char data[] =
 
 static void
 init_loader_conf(DLConf *conf) {
-  int i;
-
   conf->options = DL_INSERT_ONE | DL_MEM_BASED;
   conf->x_dim = 2;
   conf->x_cols[1] = 0;

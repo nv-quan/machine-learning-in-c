@@ -69,13 +69,13 @@ cleanup:
 
 static int
 default_stop_cond(int epoch, double loss) {
+  UNUSED(loss);
   return epoch >= 150;
 }
 
 static double
 calc_loss() {
-  int i;
-  size_t n;
+  size_t i, n;
   double dot_result, loss = 0;
   DatLoader *loader;
   Point buffer[BUFFER_SIZE], *curr;
@@ -106,15 +106,18 @@ calc_loss() {
   return loss;
 }
 
+/*
 static double
 calc_coef(Point *points, size_t len, size_t dim, double alpha) {
   double coef;
 
+  coef = 0;
   while (len--) {
     coef += alpha * (points[len].y - dot_product(theta, points[len].x, dim));
   }
   return coef;
 }
+*/
 
 Mat *
 make_points_mat_x(Point *points, size_t size) {
@@ -139,7 +142,6 @@ make_points_mat_y(Point *points, size_t size) {
 int
 do_gd(DatLoader *loader) {
   Point points[CF_MAX_BUF_SIZE];
-  double coeff;
   size_t size, dim, batch_sz;
   Mat *X, *Y, *Theta, *Theta_trans, *Temp;
   int retval = 0;
@@ -194,7 +196,7 @@ do_gd(DatLoader *loader) {
   } else {
     retval = TRUE;
   }
-cleanup:
+/*cleanup:*/
   destr_mat(Theta);
   destr_mat(Theta_trans);
   return retval;
@@ -202,7 +204,7 @@ cleanup:
 
 void
 init_theta() {
-  int i;
+  size_t i;
   /* Zero initialization, will revisit later */
   for (i = 0; i < config->dimension; i++) {
     theta[i] = 0;
