@@ -1,5 +1,6 @@
 #include <check.h>
 #include <custom_math.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include "utils.h"
 
@@ -9,7 +10,9 @@ START_TEST(test_double_eq)
   double b = 1.23457;
   double c = 1.234561;
   double d = 1.234559;
-  ck_assert(double_eq(a, b));
+  ck_assert(!double_eq(a, b));
+  ck_assert(double_eq(a, c));
+  ck_assert(double_eq(c, d));
 }
 END_TEST
 
