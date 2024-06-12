@@ -1,5 +1,13 @@
 Machine learning algorithms implementation in C
 
+**How to build**
+```bash
+./script/autogen.sh
+make
+# Optional: Run tests
+make check
+```
+
 **Coding conventions**
 
 - C99 compatible.
