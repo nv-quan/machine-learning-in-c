@@ -1,38 +1,26 @@
 #include <check.h>
 #include <custom_math.h>
-#include <stdio.h>
 #include <stdlib.h>
+
+#include "test_io.h"
+#include "test_math.h"
 #include "utils.h"
 
-START_TEST(test_double_eq)
-{
-  double a = 1.23456;
-  double b = 1.23457;
-  double c = 1.234561;
-  double d = 1.234559;
-  ck_assert(!double_eq(a, b));
-  ck_assert(double_eq(a, c));
-  ck_assert(double_eq(c, d));
-}
-END_TEST
-
-Suite * math_suite(void) {
+Suite *
+master_suite(void) {
   Suite *s;
-  TCase *tc_core;
-  s = suite_create("Math test");
-  tc_core = tcase_create("Basic");
-  tcase_add_test(tc_core, test_double_eq);
-  suite_add_tcase(s, tc_core);
+  s = suite_create("Master suite");
   return s;
 }
-int main(void)
-{
+
+int
+main(void) {
   int number_failed;
-  Suite *s;
   SRunner *sr;
 
-  s = math_suite();
-  sr = srunner_create(s);
+  sr = srunner_create(master_suite());
+  srunner_add_suite(sr, math_suite());
+  srunner_add_suite(sr, data_suite());
 
   srunner_run_all(sr, CK_NORMAL);
   number_failed = srunner_ntests_failed(sr);

@@ -1,5 +1,9 @@
 TESTS = test_prg
 check_PROGRAMS = test_prg
-test_prg_SOURCES = test.c
-test_prg_CFLAGS = @CHECK_CFLAGS@ -I$(srcdir)/../src
-test_prg_LDADD = @CHECK_LIBS@ $(top_builddir)/src/libio.la $(top_builddir)/src/libdata.la $(top_builddir)/src/libmath.la $(top_builddir)/src/libutils.la
+noinst_LTLIBRARIES = libtestio.la libtestmath.la
+libtestio_la_SOURCES = test_io.c test_io.h
+libtestmath_la_SOURCES = test_math.c test_math.h
+test_prg_SOURCES = test.c test_io.h test_math.h
+#test_prg_CFLAGS = @CHECK_CFLAGS@ -I$(srcdir)/../src
+AM_CFLAGS = @CHECK_CFLAGS@ -I$(srcdir)/../src
+test_prg_LDADD = @CHECK_LIBS@ $(top_builddir)/src/libio.la $(top_builddir)/src/libdata.la $(top_builddir)/src/libmath.la $(top_builddir)/src/libutils.la libtestio.la libtestmath.la
