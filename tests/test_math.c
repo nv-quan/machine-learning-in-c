@@ -324,7 +324,7 @@ math_suite(void) {
   Suite *s;
   TCase *tc_basic, *tc_vec, *tc_mat, *tc_mmat;
 
-  s = suite_create("Mathtestaaaaaaaaaaaaaaaaa");
+  s = suite_create("Math test");
 
   // Basic test cases
   tc_basic = tcase_create("Basic");
