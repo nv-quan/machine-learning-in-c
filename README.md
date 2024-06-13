@@ -2,9 +2,9 @@ Machine learning algorithms implementation in C
 
 **How to build**
 ```bash
-./script/autogen.sh
+./autogen.sh
 make
-# Optional: Run tests
+# Run tests
 make check
 ```
 
