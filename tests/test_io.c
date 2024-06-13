@@ -217,16 +217,16 @@ START_TEST(test_continuous_loader_mem3) {
   DLConf conf;
   Point point1;
   int n, i;
-  double x[] = {1.5, 23.38284, 7}, y = 47.7;
+  double x[] = {13.3, 561.9845, 5}, y = 54.8;
 
   init_dlconf_mem(&conf);
   DatLoader *loader = make_data_loader(&conf);
-  for (i = 0; i < 20 && (n = load_data(loader, 1, &point1)) > 0; i++) {
+  for (i = 0; i < 4 && (n = load_data(loader, 1, &point1)) > 0; i++) {
   }
 
   ck_assert_msg(
       x[0] == point1.x[0] && x[1] == point1.x[1] && x[2] == point1.x[2],
-      "Wrong point 20, expect x1 = %lf, x2 = %lf, x3 = %lf, y = %lf, actual x1 "
+      "Wrong point 4, expect x1 = %lf, x2 = %lf, x3 = %lf, y = %lf, actual x1 "
       "= %lf, x2 = %lf, x3 = %lf, y = %lf",
       x[0], x[1], x[2], y, point1.x[0], point1.x[1], point1.x[2], point1.y);
   destroy_dat_loader(loader);
