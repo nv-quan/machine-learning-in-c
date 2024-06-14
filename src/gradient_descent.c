@@ -2,11 +2,10 @@
 
 #include <stdio.h>
 
+#include "assert.h"
 #include "config.h"
 #include "custom_math.h"
 #include "data.h"
-/* #include "debug.h" */
-#include "assert.h"
 #include "io.h"
 #include "utils.h"
 
@@ -156,24 +155,36 @@ do_gd(DatLoader *loader) {
     fprintf(stderr, "Batch size too big, use size <= %lu\n", sizeof(points));
     retval = FALSE;
   }
+  /*
   Theta = creat_mat_from_val(theta, dim, 1);
   Theta_trans = creat_mat_from_val(theta, dim, 1);
   mmat_transpose(Theta_trans);
+  */
+
+  /* Create X, Y mat here */
+
   while (!(ld_err(loader)) &&
          (size = load_data(loader, batch_sz, points)) > 0) {
+    /* Save points into X & Y */
+    /*
     X = make_points_mat_x(points, size);
     Y = make_points_mat_y(points, size);
-    Temp = creat_mat(1, size);
-    if (mmat_mul(Temp, Theta_trans, X)) {
-      rp_err("do_gd: Can't do matrix multiplication");
+    */
+    /* Temp = creat_mat(1, size); No need for a temp */
+    if (mmat_mul(Temp, Theta_trans, X) == NULL) {
+      /* rp_err("do_gd: Can't do matrix multiplication"); Just return null if
+       * the operation is wrong. Any operation with Mat will need to check for
+       * null in the arguments and return null if it finds one */
+      /* No need to continuously destroying mat
       destr_mat(Temp);
       destr_mat(X);
       destr_mat(Y);
+      */
       return FALSE;
     }
-    mmat_neg(Y);
+    /* mmat_neg(Y); */
     if (mmat_add(Temp, Temp, Y)) {
-      rp_err("do_gd: Can't do matrix multiplication");
+      /* rp_err("do_gd: Can't do matrix multiplication"); */
       destr_mat(Temp);
       destr_mat(X);
       destr_mat(Y);
@@ -196,7 +207,7 @@ do_gd(DatLoader *loader) {
   } else {
     retval = TRUE;
   }
-/*cleanup:*/
+  /*cleanup:*/
   destr_mat(Theta);
   destr_mat(Theta_trans);
   return retval;

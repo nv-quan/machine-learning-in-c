@@ -43,7 +43,7 @@ creat_mat_from_val(double *val, size_t row, size_t col) {
   return res;
 }
 
-void
+Mat *
 set_mat_elem(Mat *mat, size_t i, size_t j, double val) {
   mat->val[i * mat->col + j] = val;
 }
@@ -53,20 +53,16 @@ get_mat_elem(Mat *mat, size_t i, size_t j) {
   return mat->val[i * mat->col + j];
 }
 
-void
+Mat *
 set_mat_row(Mat *mat, size_t row_idx, double *value) {
   double *row = mat->val + mat->col * row_idx;
   memcpy((void *)row, (const void *)value, sizeof(double) * mat->col);
 }
 
-void
+Mat *
 set_mat_col(Mat *mat, size_t col_idx, double *value) {
   size_t i;
   for (i = 0; i < mat->row; ++i) {
     set_mat_elem(mat, i, col_idx, value[i]);
   }
-}
-
-void
-update_mat_size(Mat *mat, size_t row, size_t col) {
 }
