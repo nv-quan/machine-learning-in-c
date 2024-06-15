@@ -1,3 +1,5 @@
+#include "test_io.h"
+
 #include <check.h>
 #include <string.h>
 
@@ -5,7 +7,6 @@
 #include "data.h"
 #include "io.h"
 #include "test_config.h"
-#include "test_io.h"
 #include "utils.h"
 
 void init_dlconf_file(DLConf *conf);
@@ -234,7 +235,7 @@ START_TEST(test_continuous_loader_mem3) {
 END_TEST
 
 Suite *
-data_suite(void) {
+io_suite(void) {
   Suite *s = suite_create("Data");
 
   TCase *tc_point_io = tcase_create("Point IO");

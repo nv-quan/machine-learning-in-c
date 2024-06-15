@@ -2,6 +2,7 @@
 
 #include <check.h>
 #include <custom_math.h>
+#include <stdio.h>
 #include <stdlib.h>
 
 #include "data.h"
@@ -120,43 +121,6 @@ START_TEST(test_mat_transpose1x1) {
 }
 END_TEST
 
-START_TEST(test_mmat_create_fromval) {
-  double matval[] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15};
-  Mat *mata, *matb;
-  int i;
-
-  mata = creat_mat(2, 3);
-  ck_assert_ptr_nonnull(mata);
-
-  matb = creat_mat_from_val(matval, 3, 5);
-  ck_assert_int_eq(mata->row, 2);
-  ck_assert_int_eq(mata->col, 3);
-  ck_assert_int_eq(matb->row, 3);
-  ck_assert_int_eq(matb->col, 5);
-
-  for (i = 0; i < 15; ++i) {
-    ck_assert(double_eq(matb->val[i], matval[i]));
-  }
-
-  destr_mat(mata);
-  destr_mat(matb);
-}
-END_TEST
-
-START_TEST(test_mmat_set_and_get_elem) {
-  Mat *mat;
-  double value = 5.5;
-
-  mat = creat_mat(4, 4);
-  ck_assert_ptr_nonnull(mat);
-
-  set_mat_elem(mat, 2, 2, value);
-  ck_assert(double_eq(get_mat_elem(mat, 2, 2), value));
-
-  destr_mat(mat);
-}
-END_TEST
-
 START_TEST(test_mmat_mul_ok) {
   double mata_val[] = {1.2, -4.2, 1.2, 1.8, 9.2, 4.7, -5.5, 1.3, 2.3, -3.4};
   double matb_val[] = {3.1,   4.2,   -9.5,  5.3, 5.4,  4.8,  -11,
@@ -168,14 +132,17 @@ START_TEST(test_mmat_mul_ok) {
       *matb = creat_mat_from_val(matb_val, 5, 4),
       *mat_expected = creat_mat_from_val(expected, 2, 4);
   int i, j;
+  double a, b;
 
   ck_assert_ptr_nonnull(mmat_mul(mata, matb));
   ck_assert_int_eq(mata->row, 2);
   ck_assert_int_eq(mata->col, 4);
   for (i = 0; i < mata->row; ++i) {
     for (j = 0; j < mata->col; ++j) {
-      ck_assert(double_eq(get_mat_elem(mata, i, j),
-                          get_mat_elem(mat_expected, i, j)));
+      a = get_mat_elem(mata, i, j);
+      b = get_mat_elem(mat_expected, i, j);
+      ck_assert_msg(double_eq(a, b),
+                    "Get %d %d of mata: %lf, mat_expected: %lf", i, j, a, b);
     }
   }
   destr_mat(mata);
@@ -191,8 +158,8 @@ START_TEST(test_mmat_mul_null) {
 
   ck_assert_ptr_null(res);
   /* Should leave mat a alone */
-  ck_assert_uint_eq(mata->col, 2);
-  ck_assert_uint_eq(mata->row, 5);
+  ck_assert_uint_eq(mata->row, 2);
+  ck_assert_uint_eq(mata->col, 5);
   destr_mat(mata);
 }
 END_TEST
@@ -231,12 +198,13 @@ START_TEST(test_mmat_add_ok) {
 END_TEST
 
 START_TEST(test_mmat_add_null) {
+  int i;
   double mata_val[] = {1, 2, 3, 4};
   Mat *mata = creat_mat_from_val(mata_val, 2, 2);
   Mat *res = mmat_add(mata, NULL);
 
   ck_assert_ptr_null(res);
-  for (i = 0; i < 8; ++i) {
+  for (i = 0; i < 4; ++i) {
     ck_assert(double_eq(mata->val[i], mata_val[i]));
   }
   destr_mat(mata);
@@ -331,183 +299,6 @@ START_TEST(test_mmat_times_null) {
 }
 END_TEST
 
-START_TEST(test_mmat_set_row) {
-  Mat *mat;
-  double row_values[] = {1, 2, 3, 4};
-  size_t row_idx = 1, i;
-
-  mat = creat_mat(4, 4);
-  ck_assert_ptr_nonnull(mat);
-
-  set_mat_row(mat, row_idx, row_values);
-  for (i = 0; i < 4; ++i) {
-    ck_assert(double_eq(get_mat_elem(mat, row_idx, i), row_values[i]));
-  }
-
-  destr_mat(mat);
-}
-END_TEST
-
-START_TEST(test_mmat_set_col) {
-  Mat *mat;
-  double col_values[] = {1, 2, 3, 4};
-  size_t col_idx = 1, i;
-
-  mat = creat_mat(4, 4);
-  ck_assert_ptr_nonnull(mat);
-
-  set_mat_col(mat, col_idx, col_values);
-  for (i = 0; i < 4; ++i) {
-    ck_assert(double_eq(get_mat_elem(mat, i, col_idx), col_values[i]));
-  }
-
-  destr_mat(mat);
-}
-END_TEST
-
-START_TEST(test_mmat_create) {
-  Mat *mat;
-
-  mat = creat_mat(3, 3);
-  ck_assert_ptr_nonnull(mat);
-  ck_assert_int_eq(mat->row, 3);
-  ck_assert_int_eq(mat->col, 3);
-  ck_assert_ptr_nonnull(mat->val);
-
-  destr_mat(mat);
-}
-END_TEST
-
-START_TEST(test_mmat_add) {
-  double mata_val[] = {1, 2, 3, 4};
-  double matb_val[] = {2, 3, 4, 5};
-  double expected[] = {3, 5, 7, 9};
-  Mat *mata = creat_mat_from_val(mata_val, 2, 2),
-      *matb = creat_mat_from_val(matb_val, 2, 2), *matr = creat_mat(2, 2);
-  int i;
-
-  ck_assert(mmat_add(matr, mata, matb) == 0);
-  for (i = 0; i < 4; ++i) {
-    ck_assert(double_eq(matr->val[i], expected[i]));
-  }
-
-  destr_mat(mata);
-  destr_mat(matb);
-  destr_mat(matr);
-}
-END_TEST
-
-START_TEST(test_mmat_destroy) {
-  Mat *mat = creat_mat(3, 3);
-  ck_assert_msg(mat != NULL,
-                "Expected creating matrix successfully but it failed.");
-
-  destr_mat(mat);
-  /* Additional checks for destruction could be added here if destr_mat has a
-   way to validate it was successful.*/
-}
-END_TEST
-
-START_TEST(test_resize_mat_ok) {
-  double initial_val[] = {1, 2, 3, 4};
-  Mat *a = creat_mat_from_val(initial_val, 2, 2);
-
-  ck_assert_ptr_nonnull(resize_mat(a, 2, 4));
-  ck_assert_uint_eq(a->row, 2);
-  ck_assert_uint_eq(a->col, 4);
-
-  /* Check that the initial values are preserved */
-  ck_assert(double_eq(get_mat_elem(a, 0, 0), 1.0));
-  ck_assert(double_eq(get_mat_elem(a, 0, 1), 2.0));
-  ck_assert(double_eq(get_mat_elem(a, 1, 0), 3.0));
-  ck_assert(double_eq(get_mat_elem(a, 1, 1), 4.0));
-
-  /* Write to the newly allocated cells and check values */
-  set_mat_elem(a, 0, 2, 5.0);
-  set_mat_elem(a, 0, 3, 6.0);
-  set_mat_elem(a, 1, 2, 7.0);
-  set_mat_elem(a, 1, 3, 8.0);
-
-  ck_assert(double_eq(get_mat_elem(a, 0, 2), 5.0));
-  ck_assert(double_eq(get_mat_elem(a, 0, 3), 6.0));
-  ck_assert(double_eq(get_mat_elem(a, 1, 2), 7.0));
-  ck_assert(double_eq(get_mat_elem(a, 1, 3), 8.0));
-
-  destr_mat(a);
-}
-END_TEST
-
-START_TEST(test_resize_mat_null) {
-  Mat *res = resize_mat(NULL, 2, 2);
-
-  ck_assert_ptr_null(res);
-}
-END_TEST
-
-START_TEST(test_resize_mat_reduce_size) {
-  double initial_val[] = {1, 2, 3, 4, 5, 6, 7, 8};
-  Mat *a = creat_mat_from_val(initial_val, 2, 4);
-
-  ck_assert_ptr_nonnull(resize_mat(a, 2, 2));
-  ck_assert_uint_eq(a->row, 2);
-  ck_assert_uint_eq(a->col, 2);
-
-  // Check that the remaining values are preserved
-  ck_assert(double_eq(get_mat_elem(a, 0, 0), 1.0));
-  ck_assert(double_eq(get_mat_elem(a, 0, 1), 2.0));
-  ck_assert(double_eq(get_mat_elem(a, 1, 0), 5.0));
-  ck_assert(double_eq(get_mat_elem(a, 1, 1), 6.0));
-
-  destr_mat(a);
-}
-END_TEST
-
-START_TEST(test_set_mat_val_ok) {
-  double initial_val[] = {0, 0, 0, 0};
-  double new_val[] = {1, 2, 3, 4};
-  Mat *a = creat_mat_from_val(initial_val, 2, 2);
-  Mat *expected = creat_mat_from_val(new_val, 2, 2);
-
-  ck_assert_ptr_nonnull(set_mat_val(a, new_val, 4));
-
-  for (size_t i = 0; i < a->row; ++i) {
-    for (size_t j = 0; j < a->col; ++j) {
-      ck_assert(double_eq(get_mat_elem(a, i, j), get_mat_elem(expected, i, j)));
-    }
-  }
-
-  destr_mat(a);
-  destr_mat(expected);
-}
-END_TEST
-
-START_TEST(test_set_mat_val_null) {
-  double new_val[] = {1, 2, 3, 4};
-  Mat *res = set_mat_val(NULL, new_val, 4);
-
-  ck_assert_ptr_null(res);
-}
-END_TEST
-
-START_TEST(test_set_mat_val_wrong_length) {
-  double initial_val[] = {0, 0, 0, 0};
-  double new_val[] = {1, 2, 3};  // Incorrect length
-  Mat *a = creat_mat_from_val(initial_val, 2, 2);
-
-  Mat *res = set_mat_val(a, new_val, 3);  // len doesn't match mat dimensions
-
-  ck_assert_ptr_null(res);
-  // Check that original matrix remains unchanged
-  for (size_t i = 0; i < a->row; ++i) {
-    for (size_t j = 0; j < a->col; ++j) {
-      ck_assert(double_eq(get_mat_elem(a, i, j), 0.0));
-    }
-  }
-
-  destr_mat(a);
-}
-END_TEST
-
 Suite *
 math_suite(void) {
   Suite *s;
@@ -537,11 +328,7 @@ math_suite(void) {
   suite_add_tcase(s, tc_mat);
 
   // Mat structure test cases
-  tc_mmat = tcase_create("Mat matrix");
-  tcase_add_test(tc_mmat, test_mmat_create);
-  tcase_add_test(tc_mmat, test_mmat_create_fromval);
-  tcase_add_test(tc_mmat, test_mmat_destroy);
-  tcase_add_test(tc_mmat, test_mmat_set_and_get_elem);
+  tc_mmat = tcase_create("Mat matrix operations");
   tcase_add_test(tc_mmat, test_mmat_mul_ok);
   tcase_add_test(tc_mmat, test_mmat_mul_null);
   tcase_add_test(tc_mmat, test_mmat_mul_wrong_size);
@@ -551,14 +338,8 @@ math_suite(void) {
   tcase_add_test(tc_mmat, test_mmat_transpose_ok);
   tcase_add_test(tc_mmat, test_mmat_transpose_null);
   tcase_add_test(tc_mmat, test_mmat_transpose_large);
-  tcase_add_test(tc_mmat, test_set_mat_val_ok);
-  tcase_add_test(tc_mmat, test_set_mat_val_null);
-  tcase_add_test(tc_mmat, test_set_mat_val_wrong_length);
-  tcase_add_test(tc_mmat, test_resize_mat_ok);
-  tcase_add_test(tc_mmat, test_resize_mat_null);
-  tcase_add_test(tc_mmat, test_resize_mat_reduce_size);
-  tcase_add_test(tc_mmat, test_mmat_set_row);
-  tcase_add_test(tc_mmat, test_mmat_set_col);
+  tcase_add_test(tc_mmat, test_mmat_times_ok);
+  tcase_add_test(tc_mmat, test_mmat_times_null);
   suite_add_tcase(s, tc_mmat);
 
   return s;

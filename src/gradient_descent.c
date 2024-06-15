@@ -141,14 +141,15 @@ make_points_mat_y(Point *points, size_t size) {
 int
 do_gd(DatLoader *loader) {
   Point points[CF_MAX_BUF_SIZE];
-  size_t size, dim, batch_sz;
-  Mat *X, *Y, *Theta, *Theta_trans, *Temp;
+  size_t size, batch_sz;
   int retval = 0;
 
 #ifdef DEBUG_H
   print_arr("theta entering sgd", theta, config->dimension);
 #endif
+  /*
   dim = config->dimension;
+  */
   batch_sz = config->batch_size;
 
   if (batch_sz > sizeof(points)) {
@@ -171,25 +172,29 @@ do_gd(DatLoader *loader) {
     Y = make_points_mat_y(points, size);
     */
     /* Temp = creat_mat(1, size); No need for a temp */
-    if (mmat_mul(Temp, Theta_trans, X) == NULL) {
-      /* rp_err("do_gd: Can't do matrix multiplication"); Just return null if
+    /*
+    if (mmat_mul(Theta_trans, X) == NULL) {
+      * rp_err("do_gd: Can't do matrix multiplication"); Just return null if
        * the operation is wrong. Any operation with Mat will need to check for
-       * null in the arguments and return null if it finds one */
-      /* No need to continuously destroying mat
+       * null in the arguments and return null if it finds one
+      * No need to continuously destroying mat
       destr_mat(Temp);
       destr_mat(X);
       destr_mat(Y);
-      */
+
       return FALSE;
     }
+  */
     /* mmat_neg(Y); */
-    if (mmat_add(Temp, Temp, Y)) {
-      /* rp_err("do_gd: Can't do matrix multiplication"); */
+    /*
+    if (mmat_add(Temp, Y)) {
+      rp_err("do_gd: Can't do matrix multiplication");
       destr_mat(Temp);
       destr_mat(X);
       destr_mat(Y);
       return FALSE;
     }
+    */
 
     /*vec_mul(temp, points.x, coeff, dim);
     vec_add(theta, theta, temp, dim); */
@@ -197,9 +202,11 @@ do_gd(DatLoader *loader) {
     printf("coeff: %lf\n", coeff);
     print_arr("theta after add", theta, config->dimension);
 #endif
+    /*
     destr_mat(Temp);
     destr_mat(X);
     destr_mat(Y);
+    */
   }
   if (ld_err(loader)) {
     rp_err("SGD load data error");
@@ -208,8 +215,8 @@ do_gd(DatLoader *loader) {
     retval = TRUE;
   }
   /*cleanup:*/
-  destr_mat(Theta);
-  destr_mat(Theta_trans);
+  /* destr_mat(Theta); */
+  /*destr_mat(Theta_trans); */
   return retval;
 }
 

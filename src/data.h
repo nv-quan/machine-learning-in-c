@@ -84,9 +84,10 @@ Mat* creat_mat(size_t row, size_t col);
 /* Destroy the matrix mat */
 void destr_mat(Mat* mat);
 
-/* Resize matrix.
- * After resized, if the new matrix is bigger than the old one, the additional
- * values are garbages.
+/* Attempt to resize matrix.
+ * Resizing is destructive, meaning that after resizing, all values become
+ * undefined. However if resizing is not successful then mat will not be
+ * changed.
  *
  * Parameters:
  * - mat: Pointer to matrix to resize.
@@ -95,7 +96,7 @@ void destr_mat(Mat* mat);
  *
  * Returns:
  * - the same pointer (mat) if successful
- * - NULL if unsuccessful
+ * - NULL if unsuccessful.
  */
 Mat* resize_mat(Mat* mat, size_t new_row, size_t new_col);
 

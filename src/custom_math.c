@@ -1,8 +1,10 @@
 #include "custom_math.h"
 
-#include <arm_neon.h>
+#include <stdio.h>
+#include <string.h>
 
 #include "data.h"
+#include "utils.h"
 
 double
 dot_product(double *a, double *b, size_t dimension) {
@@ -70,38 +72,62 @@ mat_transpose(double *mat, size_t s1, size_t s2) {
   }
 }
 
-int
-mmat_mul(Mat *r, Mat *a, Mat *b) {
-  if (r->row != a->row || r->col != b->col || a->col != b->row) {
-    return -1;
+/* TODO: Benchmark to check if malloc is costlier or moving values around is
+ * costlier. For simplicity, just use malloc */
+Mat *
+mmat_mul(Mat *a, Mat *b) {
+  size_t arr_len;
+  double *temp;
+  Mat *ret;
+  size_t arow, acol;
+
+  if (a == NULL || b == NULL) return NULL;
+  if (a->col != b->row) return NULL;
+  arow = a->row;
+  acol = a->col;
+  arr_len = arow * acol;
+  temp = (double *)safe_malloc(sizeof(*temp) * arr_len);
+  memcpy(temp, a->val, arr_len * sizeof(*temp));
+  if (resize_mat(a, a->row, b->col) == NULL) {
+    ret = NULL;
+    goto cleanup;
   }
-  mat_mul(r->val, a->val, b->val, a->row, a->col, b->col);
-  return 0;
+  /* After resize_mat is called, a->col is already set to b->row */
+  mat_mul(a->val, temp, b->val, arow, acol, b->col);
+  ret = a;
+cleanup:
+  safe_free((void *)&temp);
+  return ret;
 }
 
-int
-mmat_add(Mat *r, Mat *a, Mat *b) {
-  if (a->col != b->col || a->row != b->row || a->col != r->col ||
-      a->row != r->row) {
-    return -1;
+Mat *
+mmat_add(Mat *a, Mat *b) {
+  if (a == NULL || b == NULL) return NULL;
+  if (a->col != b->col || a->row != b->row) {
+    return NULL;
   }
-  mat_add(r->val, a->val, b->val, a->col, a->row);
-  return 0;
+  mat_add(a->val, a->val, b->val, a->col, a->row);
+  return a;
 }
 
-void
+Mat *
 mmat_transpose(Mat *mat) {
   double temp;
+
+  if (mat == NULL) return NULL;
   mat_transpose(mat->val, mat->row, mat->col);
   temp = mat->col;
   mat->col = mat->row;
   mat->row = temp;
+  return mat;
 }
 
-void
-mmat_neg(Mat *mat) {
-  size_t i;
-  for (i = 0; i < mat->col * mat->row; ++i) {
-    mat->val[i] = -mat->val[i];
-  }
+Mat *
+mmat_times(Mat *mat, double a) {
+  size_t n;
+
+  if (mat == NULL) return NULL;
+  n = mat->row * mat->col;
+  while (n--) mat->val[n] *= a;
+  return mat;
 }

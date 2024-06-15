@@ -15,14 +15,14 @@ void vec_mul(double *result, double *vec, double s, size_t dimension);
 
 /* Matrix multiplication. r is the result of a x b.
  * Here, the matrices are flatten into continuous memory blocks by concatenating
- * their rows together.
+ * their rows together. It is not safe to pass the same pointer to both r and a.
  *
  * a's size is s1 x s2, b's size is s2 x s3, r's size is s1 x s3 */
 void mat_mul(double *r, double *a, double *b, size_t s1, size_t s2, size_t s3);
 
 /* Matrix addition. r is the result of a + b.
  * Matrices are flatten into continuous memory blocks by concatenating their
- * rows together.
+ * rows together. It is safe to pass the same pointer to both r and a.
  *
  * Sizes of r, a, b are s1 x s2 */
 void mat_add(double *r, double *a, double *b, size_t s1, size_t s2);

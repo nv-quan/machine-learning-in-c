@@ -43,7 +43,7 @@ creat_mat_from_val(double *val, size_t row, size_t col) {
   return res;
 }
 
-Mat *
+void
 set_mat_elem(Mat *mat, size_t i, size_t j, double val) {
   mat->val[i * mat->col + j] = val;
 }
@@ -53,16 +53,42 @@ get_mat_elem(Mat *mat, size_t i, size_t j) {
   return mat->val[i * mat->col + j];
 }
 
-Mat *
+void
 set_mat_row(Mat *mat, size_t row_idx, double *value) {
   double *row = mat->val + mat->col * row_idx;
   memcpy((void *)row, (const void *)value, sizeof(double) * mat->col);
 }
 
-Mat *
+void
 set_mat_col(Mat *mat, size_t col_idx, double *value) {
   size_t i;
   for (i = 0; i < mat->row; ++i) {
     set_mat_elem(mat, i, col_idx, value[i]);
   }
+}
+
+Mat *
+resize_mat(Mat *mat, size_t new_row, size_t new_col) {
+  double *temp;
+  size_t new_cap;
+
+  if (mat == NULL) return NULL;
+  new_cap = new_row * new_col;
+  if (mat->capacity < new_cap) {
+    temp = (double *)realloc(mat->val, new_cap * sizeof(*temp));
+    if (temp == NULL) return NULL;
+    mat->capacity = new_cap;
+    mat->val = temp;
+  }
+  mat->row = new_row;
+  mat->col = new_col;
+  return mat;
+}
+
+Mat *
+set_mat_val(Mat *mat, double *arr, size_t len) {
+  if (mat == NULL) return NULL;
+  if (len != mat->row * mat->col) return NULL;
+  memcpy(mat->val, arr, len * sizeof(*arr));
+  return mat;
 }
