@@ -88,11 +88,11 @@ mmat_mul(Mat *a, Mat *b) {
   arr_len = arow * acol;
   temp = (double *)safe_malloc(sizeof(*temp) * arr_len);
   memcpy(temp, a->val, arr_len * sizeof(*temp));
-  if (resize_mat(a, a->row, b->col) == NULL) {
+  if (mat_resize(a, a->row, b->col) == NULL) {
     ret = NULL;
     goto cleanup;
   }
-  /* After resize_mat is called, a->col is already set to b->row */
+  /* After mat_resize is called, a->col is already set to b->row */
   mat_mul(a->val, temp, b->val, arow, acol, b->col);
   ret = a;
 cleanup:

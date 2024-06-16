@@ -25,6 +25,9 @@ void log_point(Point* point);
 
 /* Create a matrix from an array of values.
  *
+ * The newly created mat will not take ownership of the val pointer but only
+ * copy values.
+ *
  * Parameters:
  * - val: Pointer to an array of double values to populate the matrix.
  * - row: Number of rows in the matrix.
@@ -34,7 +37,7 @@ void log_point(Point* point);
  * - A pointer to the created Mat if successful.
  * - NULL if unsuccessful.
  */
-Mat* creat_mat_from_val(double* val, size_t row, size_t col);
+Mat* mat_creat_from_val(double* val, size_t row, size_t col);
 
 /* Set matrix element. Users are responsible for checking the validity of this
  * operation.
@@ -45,7 +48,7 @@ Mat* creat_mat_from_val(double* val, size_t row, size_t col);
  * - j: Column index.
  * - val: Value to set at the specified position.
  */
-void set_mat_elem(Mat* mat, size_t i, size_t j, double val);
+void mat_set(Mat* mat, size_t i, size_t j, double val);
 
 /* Get matrix element. Users are responsible for checking the validity of this
  * operation.
@@ -58,7 +61,7 @@ void set_mat_elem(Mat* mat, size_t i, size_t j, double val);
  * Returns:
  * - The value of the element at the specified position.
  */
-double get_mat_elem(Mat* mat, size_t i, size_t j);
+double mat_get(Mat* mat, size_t i, size_t j);
 
 /* Set a row in a matrix.
  *
@@ -67,7 +70,7 @@ double get_mat_elem(Mat* mat, size_t i, size_t j);
  * - row_idx: Index of the row to be set.
  * - value: Pointer to an array of double values to set in the specified row.
  */
-void set_mat_row(Mat* mat, size_t row_idx, double* value);
+void mat_set_row(Mat* mat, size_t row_idx, double* value);
 
 /* Set a column in a matrix.
  *
@@ -76,13 +79,24 @@ void set_mat_row(Mat* mat, size_t row_idx, double* value);
  * - col_idx: Index of the column to be set.
  * - value: Pointer to an array of double values to set in the specified column.
  */
-void set_mat_col(Mat* mat, size_t col_idx, double* value);
+void mat_set_col(Mat* mat, size_t col_idx, double* value);
 
 /* Create a new matrix of size row x col */
-Mat* creat_mat(size_t row, size_t col);
+Mat* mat_creat(size_t row, size_t col);
+
+/* Clone a matrix
+ *
+ * Parameters:
+ * - mat: The matrix to clone
+ *
+ * Returns:
+ * - pointer to the newly created mat if successful
+ * - NULL if unsuccessful
+ * */
+Mat* mat_clone(Mat* mat);
 
 /* Destroy the matrix mat */
-void destr_mat(Mat* mat);
+void mat_destr(Mat* mat);
 
 /* Attempt to resize matrix.
  * Resizing is destructive, meaning that after resizing, all values become
@@ -98,7 +112,7 @@ void destr_mat(Mat* mat);
  * - the same pointer (mat) if successful
  * - NULL if unsuccessful.
  */
-Mat* resize_mat(Mat* mat, size_t new_row, size_t new_col);
+Mat* mat_resize(Mat* mat, size_t new_row, size_t new_col);
 
 /* Set matrix's value from an array of values
  *
@@ -111,6 +125,6 @@ Mat* resize_mat(Mat* mat, size_t new_row, size_t new_col);
  * - The same pointer passed to the function if successful
  *   NULL if unsuccessful
  */
-Mat* set_mat_val(Mat* mat, double* arr, size_t len);
+Mat* mat_set_val(Mat* mat, double* arr, size_t len);
 
 #endif

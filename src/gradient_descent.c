@@ -21,6 +21,7 @@ static void init_theta();
 static double calc_loss();
 
 static double *theta;
+static Mat *theta_mat;
 static GDConf *config;
 static DLConf *loader_conf;
 static int default_stop_cond(int epoch, double loss);
@@ -35,6 +36,7 @@ grad_desc(GDConf *gd_conf, DLConf *conf, double *result) {
   /* Borrow pointers. All of the following pointers have lifetimes equivalent
    * to grad_desc */
   theta = result;
+  theta_mat = mat_creat_from_val(theta, gd_conf->dimension, 1);
   config = gd_conf;
   loader_conf = conf;
 
@@ -63,6 +65,7 @@ cleanup:
   theta = NULL;
   config = NULL;
   loader_conf = NULL;
+  mat_destr(theta_mat);
   return retval;
 }
 
@@ -121,9 +124,9 @@ calc_coef(Point *points, size_t len, size_t dim, double alpha) {
 Mat *
 make_points_mat_x(Point *points, size_t size) {
   size_t i;
-  Mat *points_mat = creat_mat(points[0].x_length, size);
+  Mat *points_mat = mat_creat(points[0].x_length, size);
   for (i = 0; i < size; ++i) {
-    set_mat_col(points_mat, i, points[i].x);
+    mat_set_col(points_mat, i, points[i].x);
   }
   return points_mat;
 }
@@ -131,9 +134,9 @@ make_points_mat_x(Point *points, size_t size) {
 Mat *
 make_points_mat_y(Point *points, size_t size) {
   size_t i;
-  Mat *y = creat_mat(1, size);
+  Mat *y = mat_creat(1, size);
   for (i = 0; i < size; ++i) {
-    set_mat_col(y, i, &points[i].y);
+    mat_set_col(y, i, &points[i].y);
   }
   return y;
 }
@@ -157,8 +160,8 @@ do_gd(DatLoader *loader) {
     retval = FALSE;
   }
   /*
-  Theta = creat_mat_from_val(theta, dim, 1);
-  Theta_trans = creat_mat_from_val(theta, dim, 1);
+  Theta = mat_creat_from_val(theta, dim, 1);
+  Theta_trans = mat_creat_from_val(theta, dim, 1);
   mmat_transpose(Theta_trans);
   */
 
@@ -171,16 +174,16 @@ do_gd(DatLoader *loader) {
     X = make_points_mat_x(points, size);
     Y = make_points_mat_y(points, size);
     */
-    /* Temp = creat_mat(1, size); No need for a temp */
+    /* Temp = mat_creat(1, size); No need for a temp */
     /*
     if (mmat_mul(Theta_trans, X) == NULL) {
       * rp_err("do_gd: Can't do matrix multiplication"); Just return null if
        * the operation is wrong. Any operation with Mat will need to check for
        * null in the arguments and return null if it finds one
       * No need to continuously destroying mat
-      destr_mat(Temp);
-      destr_mat(X);
-      destr_mat(Y);
+      mat_destr(Temp);
+      mat_destr(X);
+      mat_destr(Y);
 
       return FALSE;
     }
@@ -189,9 +192,9 @@ do_gd(DatLoader *loader) {
     /*
     if (mmat_add(Temp, Y)) {
       rp_err("do_gd: Can't do matrix multiplication");
-      destr_mat(Temp);
-      destr_mat(X);
-      destr_mat(Y);
+      mat_destr(Temp);
+      mat_destr(X);
+      mat_destr(Y);
       return FALSE;
     }
     */
@@ -203,9 +206,9 @@ do_gd(DatLoader *loader) {
     print_arr("theta after add", theta, config->dimension);
 #endif
     /*
-    destr_mat(Temp);
-    destr_mat(X);
-    destr_mat(Y);
+    mat_destr(Temp);
+    mat_destr(X);
+    mat_destr(Y);
     */
   }
   if (ld_err(loader)) {
@@ -215,8 +218,8 @@ do_gd(DatLoader *loader) {
     retval = TRUE;
   }
   /*cleanup:*/
-  /* destr_mat(Theta); */
-  /*destr_mat(Theta_trans); */
+  /* mat_destr(Theta); */
+  /*mat_destr(Theta_trans); */
   return retval;
 }
 

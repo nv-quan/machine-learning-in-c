@@ -17,7 +17,7 @@ log_point(Point *p) {
 }
 
 Mat *
-creat_mat(size_t row, size_t col) {
+mat_creat(size_t row, size_t col) {
   if (row * col == 0) {
     return NULL;
   }
@@ -31,44 +31,44 @@ creat_mat(size_t row, size_t col) {
 }
 
 void
-destr_mat(Mat *mat) {
+mat_destr(Mat *mat) {
   safe_free((void **)&mat->val);
   safe_free((void **)&mat);
 }
 
 Mat *
-creat_mat_from_val(double *val, size_t row, size_t col) {
-  Mat *res = creat_mat(row, col);
+mat_creat_from_val(double *val, size_t row, size_t col) {
+  Mat *res = mat_creat(row, col);
   memcpy((void *)res->val, (const void *)val, sizeof(double) * row * col);
   return res;
 }
 
 void
-set_mat_elem(Mat *mat, size_t i, size_t j, double val) {
+mat_set(Mat *mat, size_t i, size_t j, double val) {
   mat->val[i * mat->col + j] = val;
 }
 
 double
-get_mat_elem(Mat *mat, size_t i, size_t j) {
+mat_get(Mat *mat, size_t i, size_t j) {
   return mat->val[i * mat->col + j];
 }
 
 void
-set_mat_row(Mat *mat, size_t row_idx, double *value) {
+mat_set_row(Mat *mat, size_t row_idx, double *value) {
   double *row = mat->val + mat->col * row_idx;
   memcpy((void *)row, (const void *)value, sizeof(double) * mat->col);
 }
 
 void
-set_mat_col(Mat *mat, size_t col_idx, double *value) {
+mat_set_col(Mat *mat, size_t col_idx, double *value) {
   size_t i;
   for (i = 0; i < mat->row; ++i) {
-    set_mat_elem(mat, i, col_idx, value[i]);
+    mat_set(mat, i, col_idx, value[i]);
   }
 }
 
 Mat *
-resize_mat(Mat *mat, size_t new_row, size_t new_col) {
+mat_resize(Mat *mat, size_t new_row, size_t new_col) {
   double *temp;
   size_t new_cap;
 
@@ -86,9 +86,14 @@ resize_mat(Mat *mat, size_t new_row, size_t new_col) {
 }
 
 Mat *
-set_mat_val(Mat *mat, double *arr, size_t len) {
+mat_set_val(Mat *mat, double *arr, size_t len) {
   if (mat == NULL) return NULL;
   if (len != mat->row * mat->col) return NULL;
   memcpy(mat->val, arr, len * sizeof(*arr));
   return mat;
+}
+
+Mat *
+mat_clone(Mat *mat) {
+  return mat_creat_from_val(mat->val, mat->row, mat->col);
 }

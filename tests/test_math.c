@@ -128,9 +128,9 @@ START_TEST(test_mmat_mul_ok) {
                        7.4,   8.5,   9.6,   8.9, 5.9,  -50};
   double expected[] = {65.874,  48.598,  113.68, -368.596,
                        -48.561, -55.717, 25.03,  303.506};
-  Mat *mata = creat_mat_from_val(mata_val, 2, 5),
-      *matb = creat_mat_from_val(matb_val, 5, 4),
-      *mat_expected = creat_mat_from_val(expected, 2, 4);
+  Mat *mata = mat_creat_from_val(mata_val, 2, 5),
+      *matb = mat_creat_from_val(matb_val, 5, 4),
+      *mat_expected = mat_creat_from_val(expected, 2, 4);
   int i, j;
   double a, b;
 
@@ -139,48 +139,48 @@ START_TEST(test_mmat_mul_ok) {
   ck_assert_int_eq(mata->col, 4);
   for (i = 0; i < mata->row; ++i) {
     for (j = 0; j < mata->col; ++j) {
-      a = get_mat_elem(mata, i, j);
-      b = get_mat_elem(mat_expected, i, j);
+      a = mat_get(mata, i, j);
+      b = mat_get(mat_expected, i, j);
       ck_assert_msg(double_eq(a, b),
                     "Get %d %d of mata: %lf, mat_expected: %lf", i, j, a, b);
     }
   }
-  destr_mat(mata);
-  destr_mat(matb);
-  destr_mat(mat_expected);
+  mat_destr(mata);
+  mat_destr(matb);
+  mat_destr(mat_expected);
 }
 END_TEST
 
 START_TEST(test_mmat_mul_null) {
   double mata_val[] = {1.2, -4.2, 1.2, 1.8, 9.2, 4.7, -5.5, 1.3, 2.3, -3.4};
-  Mat *mata = creat_mat_from_val(mata_val, 2, 5);
+  Mat *mata = mat_creat_from_val(mata_val, 2, 5);
   Mat *res = mmat_mul(mata, NULL);
 
   ck_assert_ptr_null(res);
   /* Should leave mat a alone */
   ck_assert_uint_eq(mata->row, 2);
   ck_assert_uint_eq(mata->col, 5);
-  destr_mat(mata);
+  mat_destr(mata);
 }
 END_TEST
 
 START_TEST(test_mmat_mul_wrong_size) {
-  Mat *mata = creat_mat(2, 3);
-  Mat *matb = creat_mat(2, 4);
+  Mat *mata = mat_creat(2, 3);
+  Mat *matb = mat_creat(2, 4);
 
   ck_assert_ptr_null(mmat_mul(mata, matb));
 
-  destr_mat(mata);
-  destr_mat(matb);
+  mat_destr(mata);
+  mat_destr(matb);
 }
 END_TEST
 
 START_TEST(test_mmat_add_ok) {
   double mata_val[] = {1, 2, 3, 4}, matb_val[] = {2, 3, 4, 5}, result[4],
          expected_val[] = {3, 5, 7, 9};
-  Mat *a = creat_mat_from_val(mata_val, 2, 2),
-      *b = creat_mat_from_val(matb_val, 2, 2),
-      *expected = creat_mat_from_val(expected_val, 2, 2);
+  Mat *a = mat_creat_from_val(mata_val, 2, 2),
+      *b = mat_creat_from_val(matb_val, 2, 2),
+      *expected = mat_creat_from_val(expected_val, 2, 2);
   size_t i, j;
 
   ck_assert_ptr_nonnull(mmat_add(a, b));
@@ -188,45 +188,45 @@ START_TEST(test_mmat_add_ok) {
   ck_assert_uint_eq(a->row, 2);
   for (i = 0; i < a->col; ++i) {
     for (j = 0; j < a->row; ++j) {
-      ck_assert(double_eq(get_mat_elem(expected, 2, 2), get_mat_elem(a, 2, 2)));
+      ck_assert(double_eq(mat_get(expected, 2, 2), mat_get(a, 2, 2)));
     }
   }
-  destr_mat(a);
-  destr_mat(b);
-  destr_mat(expected);
+  mat_destr(a);
+  mat_destr(b);
+  mat_destr(expected);
 }
 END_TEST
 
 START_TEST(test_mmat_add_null) {
   int i;
   double mata_val[] = {1, 2, 3, 4};
-  Mat *mata = creat_mat_from_val(mata_val, 2, 2);
+  Mat *mata = mat_creat_from_val(mata_val, 2, 2);
   Mat *res = mmat_add(mata, NULL);
 
   ck_assert_ptr_null(res);
   for (i = 0; i < 4; ++i) {
     ck_assert(double_eq(mata->val[i], mata_val[i]));
   }
-  destr_mat(mata);
+  mat_destr(mata);
 }
 END_TEST
 
 START_TEST(test_mmat_add_wrong_size) {
-  Mat *a = creat_mat(2, 2);
-  Mat *b = creat_mat(3, 3);
+  Mat *a = mat_creat(2, 2);
+  Mat *b = mat_creat(3, 3);
 
   ck_assert_ptr_null(mmat_add(a, b));
 
-  destr_mat(a);
-  destr_mat(b);
+  mat_destr(a);
+  mat_destr(b);
 }
 END_TEST
 
 START_TEST(test_mmat_transpose_ok) {
   double mata_val[] = {1, 2, 3, 4, 5, 6};
   double expected_val[] = {1, 4, 2, 5, 3, 6};
-  Mat *a = creat_mat_from_val(mata_val, 2, 3),
-      *expected = creat_mat_from_val(expected_val, 3, 2);
+  Mat *a = mat_creat_from_val(mata_val, 2, 3),
+      *expected = mat_creat_from_val(expected_val, 3, 2);
   size_t i, j;
 
   ck_assert_ptr_nonnull(mmat_transpose(a));
@@ -234,11 +234,11 @@ START_TEST(test_mmat_transpose_ok) {
   ck_assert_uint_eq(a->row, 3);
   for (i = 0; i < a->row; ++i) {
     for (j = 0; j < a->col; ++j) {
-      ck_assert(double_eq(get_mat_elem(expected, i, j), get_mat_elem(a, i, j)));
+      ck_assert(double_eq(mat_get(expected, i, j), mat_get(a, i, j)));
     }
   }
-  destr_mat(a);
-  destr_mat(expected);
+  mat_destr(a);
+  mat_destr(expected);
 }
 END_TEST
 
@@ -254,8 +254,8 @@ START_TEST(test_mmat_transpose_large) {
                        11, 12, 13, 14, 15, 16, 17, 18, 19, 20};
   double expected_val[] = {1,  6,  11, 16, 2,  7,  12, 17, 3,  8,
                            13, 18, 4,  9,  14, 19, 5,  10, 15, 20};
-  Mat *a = creat_mat_from_val(mata_val, 4, 5),
-      *expected = creat_mat_from_val(expected_val, 5, 4);
+  Mat *a = mat_creat_from_val(mata_val, 4, 5),
+      *expected = mat_creat_from_val(expected_val, 5, 4);
   Mat *result = mmat_transpose(a);
   size_t i, j;
 
@@ -264,19 +264,19 @@ START_TEST(test_mmat_transpose_large) {
   ck_assert_uint_eq(a->row, 5);
   for (i = 0; i < a->row; ++i) {
     for (j = 0; j < a->col; ++j) {
-      ck_assert(double_eq(get_mat_elem(expected, i, j), get_mat_elem(a, i, j)));
+      ck_assert(double_eq(mat_get(expected, i, j), mat_get(a, i, j)));
     }
   }
-  destr_mat(a);
-  destr_mat(expected);
+  mat_destr(a);
+  mat_destr(expected);
 }
 END_TEST
 
 START_TEST(test_mmat_times_ok) {
   double mata_val[] = {1, 2, 3, 4};
   double expected_val[] = {2, 4, 6, 8};
-  Mat *a = creat_mat_from_val(mata_val, 2, 2),
-      *expected = creat_mat_from_val(expected_val, 2, 2);
+  Mat *a = mat_creat_from_val(mata_val, 2, 2),
+      *expected = mat_creat_from_val(expected_val, 2, 2);
   size_t i, j;
 
   ck_assert_ptr_nonnull(mmat_times(a, 2.0));
@@ -284,11 +284,11 @@ START_TEST(test_mmat_times_ok) {
   ck_assert_uint_eq(a->row, 2);
   for (i = 0; i < a->row; ++i) {
     for (j = 0; j < a->col; ++j) {
-      ck_assert(double_eq(get_mat_elem(expected, i, j), get_mat_elem(a, i, j)));
+      ck_assert(double_eq(mat_get(expected, i, j), mat_get(a, i, j)));
     }
   }
-  destr_mat(a);
-  destr_mat(expected);
+  mat_destr(a);
+  mat_destr(expected);
 }
 END_TEST
 

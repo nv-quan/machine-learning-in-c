@@ -52,21 +52,27 @@ Mkfile.old
 dkms.conf
 
 # autoconf generated files
-# Makefile
-# Makefile.in
-# aclocal.m4
-# autom4te.cache/
-# compile
-# config.h
-# config.h.in
-# config.log
-# config.status
-# configure
-# depcomp
-# install-sh
-# missing
-# src/.deps/
-# src/Makefile
-# src/Makefile.in
-# src/mlalgos
-# stamp-h1
+Makefile
+Makefile.in
+aclocal.m4
+autom4te.cache/
+build-aux/
+config.h
+config.h.in
+config.log
+config.status
+configure
+libtool
+m4/
+src/.deps/
+src/Makefile
+src/Makefile.in
+src/mlalgos
+stamp-h1
+tests/.deps/
+tests/Makefile
+tests/Makefile.in
+tests/test
+tests/test-suite.log
+tests/test.log
+tests/test.trs
