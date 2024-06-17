@@ -21,7 +21,7 @@ static void init_theta();
 static double calc_loss();
 
 static double *theta;
-static Mat *theta_mat;
+static Mat *theta_mat, *X_mat, *Y_mat, *temp1;
 static GDConf *config;
 static DLConf *loader_conf;
 static int default_stop_cond(int epoch, double loss);
@@ -33,10 +33,13 @@ grad_desc(GDConf *gd_conf, DLConf *conf, double *result) {
   DatLoader *loader;
   int (*stop_cond)(int, double);
 
-  /* Borrow pointers. All of the following pointers have lifetimes equivalent
-   * to grad_desc */
   theta = result;
+  /* Allocate resources */
   theta_mat = mat_creat_from_val(theta, gd_conf->dimension, 1);
+  X_mat = mat_creat(gd_conf->dimension, gd_conf->batch_size);
+  Y_mat = mat_creat(1, gd_conf->batch_size);
+  temp1 = mat_creat(1, 1);
+
   config = gd_conf;
   loader_conf = conf;
 
@@ -60,11 +63,15 @@ grad_desc(GDConf *gd_conf, DLConf *conf, double *result) {
   };
   retval = TRUE;
 
-  /* Prevent accidentally accessing these variables after grad_desc finishes */
 cleanup:
+  /*
   theta = NULL;
   config = NULL;
   loader_conf = NULL;
+  */
+  mat_destr(temp1);
+  mat_destr(Y_mat);
+  mat_destr(X_mat);
   mat_destr(theta_mat);
   return retval;
 }
@@ -90,11 +97,6 @@ calc_loss() {
     for (i = 0; i < n; ++i) {
       curr = buffer + i;
       dot_result = dot_product(curr->x, theta, curr->x_length);
-#ifdef DEBUG_H
-      printf("dot_result: %lf, y: %lf\n", dot_result, curr->y);
-      print_arr("theta", theta, curr->x_length);
-      print_arr("x", curr->x, curr->x_length);
-#endif
       loss += (dot_result - curr->y) * (dot_result - curr->y);
     }
   }
@@ -121,35 +123,24 @@ calc_coef(Point *points, size_t len, size_t dim, double alpha) {
 }
 */
 
-Mat *
-make_points_mat_x(Point *points, size_t size) {
-  size_t i;
-  Mat *points_mat = mat_creat(points[0].x_length, size);
-  for (i = 0; i < size; ++i) {
-    mat_set_col(points_mat, i, points[i].x);
+void
+set_xy_mat(Point *points, size_t size) {
+  X_mat = mat_resize(X_mat, config->dimension, size);
+  Y_mat = mat_resize(Y_mat, 1, size);
+  while (size--) {
+    mat_set_col(X_mat, size, points[size].x);
+    mat_set_col(Y_mat, size, &points[size].y);
   }
-  return points_mat;
-}
-
-Mat *
-make_points_mat_y(Point *points, size_t size) {
-  size_t i;
-  Mat *y = mat_creat(1, size);
-  for (i = 0; i < size; ++i) {
-    mat_set_col(y, i, &points[i].y);
-  }
-  return y;
 }
 
 int
 do_gd(DatLoader *loader) {
   Point points[CF_MAX_BUF_SIZE];
-  size_t size, batch_sz;
+  size_t size, batch_sz, theta_row, theta_col, theta_size;
+  Mat *lc_theta_clone, *lc_x, *lc_y, *lc_theta;
   int retval = 0;
+  double *theta_val;
 
-#ifdef DEBUG_H
-  print_arr("theta entering sgd", theta, config->dimension);
-#endif
   /*
   dim = config->dimension;
   */
@@ -159,16 +150,32 @@ do_gd(DatLoader *loader) {
     fprintf(stderr, "Batch size too big, use size <= %lu\n", sizeof(points));
     retval = FALSE;
   }
-  /*
-  Theta = mat_creat_from_val(theta, dim, 1);
-  Theta_trans = mat_creat_from_val(theta, dim, 1);
-  mmat_transpose(Theta_trans);
-  */
 
-  /* Create X, Y mat here */
-
+  theta_row = mat_get_rowc(theta_mat);
+  theta_col = mat_get_colc(theta_mat);
+  theta_size = theta_row * theta_col;
+  theta_val = mat_get_val(theta_mat);
   while (!(ld_err(loader)) &&
          (size = load_data(loader, batch_sz, points)) > 0) {
+    set_xy_mat(points, size);
+    /* Use local pointers to keep global pointers from being changed */
+    lc_x = X_mat;
+    lc_y = Y_mat;
+    lc_theta = theta_mat;
+    lc_theta_clone = temp1;
+
+    /* Chaining assignments to make the final result null if any of them fail */
+    lc_theta_clone = mat_resize(lc_theta_clone, theta_row, theta_col);
+    lc_theta_clone = mat_set_val(lc_theta_clone, theta_val, theta_size);
+    lc_theta_clone = mmat_transpose(lc_theta_clone);
+    lc_theta_clone = mmat_mul(lc_theta_clone, lc_x);
+    lc_y = mmat_times(lc_y, -1.0);
+    lc_theta_clone = mmat_add(lc_theta_clone, lc_y);
+    lc_theta_clone = mmat_transpose(lc_theta_clone);
+    lc_x = mmat_mul(lc_x, lc_theta_clone);
+    lc_x = xmmat_times(lc_x, -1 * config->learn_rate);
+    lc_theta_clone = mmat_add(theta_mat, lc_x);
+
     /* Save points into X & Y */
     /*
     X = make_points_mat_x(points, size);
@@ -201,10 +208,6 @@ do_gd(DatLoader *loader) {
 
     /*vec_mul(temp, points.x, coeff, dim);
     vec_add(theta, theta, temp, dim); */
-#ifdef DEBUG_H
-    printf("coeff: %lf\n", coeff);
-    print_arr("theta after add", theta, config->dimension);
-#endif
     /*
     mat_destr(Temp);
     mat_destr(X);
@@ -230,7 +233,4 @@ init_theta() {
   for (i = 0; i < config->dimension; i++) {
     theta[i] = 0;
   }
-#ifdef DEBUG_H
-  print_arr("initialized theta", theta, config->dimension + 1);
-#endif
 }

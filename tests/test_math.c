@@ -243,9 +243,14 @@ START_TEST(test_mmat_transpose_ok) {
 END_TEST
 
 START_TEST(test_mmat_transpose_null) {
-  Mat *res = mmat_transpose(NULL);
+  Mat *a, *res;
 
+  a = mat_creat(2, 2);
+  ck_assert_ptr_nonnull(a);
+  res = mmat_transpose(a);
   ck_assert_ptr_null(res);
+  ck_assert_ptr_nonnull(a);
+  mat_destr(a);
 }
 END_TEST
 

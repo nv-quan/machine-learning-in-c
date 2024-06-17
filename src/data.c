@@ -32,6 +32,7 @@ mat_creat(size_t row, size_t col) {
 
 void
 mat_destr(Mat *mat) {
+  if (mat == NULL) return;
   safe_free((void **)&mat->val);
   safe_free((void **)&mat);
 }
@@ -53,13 +54,13 @@ mat_get(Mat *mat, size_t i, size_t j) {
   return mat->val[i * mat->col + j];
 }
 
-void
+Mat *
 mat_set_row(Mat *mat, size_t row_idx, double *value) {
   double *row = mat->val + mat->col * row_idx;
   memcpy((void *)row, (const void *)value, sizeof(double) * mat->col);
 }
 
-void
+Mat *
 mat_set_col(Mat *mat, size_t col_idx, double *value) {
   size_t i;
   for (i = 0; i < mat->row; ++i) {
@@ -89,6 +90,7 @@ Mat *
 mat_set_val(Mat *mat, double *arr, size_t len) {
   if (mat == NULL) return NULL;
   if (len != mat->row * mat->col) return NULL;
+  if (arr == NULL) return NULL;
   memcpy(mat->val, arr, len * sizeof(*arr));
   return mat;
 }
@@ -96,4 +98,22 @@ mat_set_val(Mat *mat, double *arr, size_t len) {
 Mat *
 mat_clone(Mat *mat) {
   return mat_creat_from_val(mat->val, mat->row, mat->col);
+}
+
+size_t
+mat_get_rowc(Mat *mat) {
+  if (mat == NULL) return 0;
+  return mat->row;
+}
+
+size_t
+mat_get_colc(Mat *mat) {
+  if (mat == NULL) return 0;
+  return mat->col;
+}
+
+double *
+mat_get_val(Mat *mat) {
+  if (mat == NULL) return NULL;
+  return mat->val;
 }
