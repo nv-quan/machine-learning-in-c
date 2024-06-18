@@ -1,6 +1,7 @@
 #include "gradient_descent.h"
 
 #include <stdio.h>
+#include <string.h>
 
 #include "assert.h"
 #include "config.h"
@@ -62,6 +63,7 @@ grad_desc(GDConf *gd_conf, DLConf *conf, double *result) {
     if (stop_cond(i, loss_result)) break;
   };
   retval = TRUE;
+  memcpy(result, theta_mat->val, gd_conf->dimension * sizeof(double));
 
 cleanup:
   mat_destr(temp1);
@@ -74,33 +76,81 @@ cleanup:
 static int
 default_stop_cond(int epoch, double loss) {
   UNUSED(loss);
-  return epoch >= 150;
+  return epoch >= 1000;
+}
+
+void
+set_xy_mat(Point *points, size_t size) {
+  X_mat = mat_resize(X_mat, config->dimension, size);
+  Y_mat = mat_resize(Y_mat, 1, size);
+  while (size--) {
+    mat_set_col(X_mat, size, points[size].x);
+    mat_set_col(Y_mat, size, &points[size].y);
+  }
 }
 
 static double
 calc_loss() {
-  size_t i, n;
-  double dot_result, loss = 0;
+  size_t i, n, theta_row, theta_col, theta_size, diff_col, diff_row, diff_size;
+  double loss = 0, *theta_val, *diff_val;
   DatLoader *loader;
-  Point points[BUFFER_SIZE], *curr;
+  Mat *lc_x, *lc_y, *lc_theta_clone, *lc_theta_transp, *h_x, *lc_minus_y, *diff;
+  Point points[BUFFER_SIZE];
 
   if ((loader = make_data_loader(loader_conf)) == NULL) {
     rp_err("Calculate loss error, can't make data loader");
     return -1; /* No need to cleanup */
   }
+
+  if (X_mat == NULL || Y_mat == NULL || theta_mat == NULL || temp1 == NULL) {
+    rp_err("calc_loss: Can't read allocated memory.");
+    return -1;
+  }
+
+  theta_row = mat_get_rowc(theta_mat);
+  theta_col = mat_get_colc(theta_mat);
+  theta_size = theta_row * theta_col;
+  theta_val = mat_get_val(theta_mat);
+
+  if (theta_row == 0 || theta_col == 0) {
+    rp_err("do_gd: Theta's dimension is invalid.");
+    return FALSE;
+  }
+
   while (!ld_err(loader) && (n = load_data(loader, BUFFER_SIZE, points)) > 0) {
-    for (i = 0; i < n; ++i) {
-      curr = points + i;
-      dot_result = dot_product(curr->x, theta, curr->x_length);
-      loss += (dot_result - curr->y) * (dot_result - curr->y);
+    set_xy_mat(points, n);
+
+    /* Use local pointers to keep global pointers from being changed */
+    lc_x = X_mat;
+    lc_y = Y_mat;
+    lc_theta_clone = temp1;
+
+    /* Chaining assignments to make the final result null if any of them fail */
+    lc_theta_clone = mat_resize(lc_theta_clone, theta_row, theta_col);
+    lc_theta_clone = mat_set_val(lc_theta_clone, theta_val, theta_size);
+    lc_theta_transp = mmat_transpose(lc_theta_clone);
+    h_x = mmat_mul(lc_theta_transp, lc_x);
+    lc_minus_y = mmat_times(lc_y, -1.0);
+    diff = mmat_add(h_x, lc_minus_y);
+    if (diff == NULL) {
+      rp_err("loss: Some error happend during loss calculation");
+      loss = -1;
+      goto cleanup;
+    }
+    diff_row = mat_get_rowc(diff);
+    diff_col = mat_get_colc(diff);
+    diff_size = diff_row * diff_col;
+    diff_val = mat_get_val(diff);
+
+    for (i = 0; i < diff_size; ++i) {
+      loss += (diff_val[i] * diff_val[i]) / 2;
     }
   }
   if (ld_err(loader)) {
     rp_err("calc_loss: error when load data");
     loss = -1;
-  } else {
-    loss /= 2;
   }
+cleanup:
   destroy_dat_loader(loader);
   return loss;
 }
@@ -117,16 +167,6 @@ calc_loss() {
    return coef;
    }
    */
-
-void
-set_xy_mat(Point *points, size_t size) {
-  X_mat = mat_resize(X_mat, config->dimension, size);
-  Y_mat = mat_resize(Y_mat, 1, size);
-  while (size--) {
-    mat_set_col(X_mat, size, points[size].x);
-    mat_set_col(Y_mat, size, &points[size].y);
-  }
-}
 
 int
 do_gd(DatLoader *loader) {
