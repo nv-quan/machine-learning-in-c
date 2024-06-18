@@ -236,7 +236,7 @@ END_TEST
 
 Suite *
 io_suite(void) {
-  Suite *s = suite_create("Data");
+  Suite *s = suite_create("Io test");
 
   TCase *tc_point_io = tcase_create("Point IO");
   tcase_add_test(tc_point_io, test_point_io_file);

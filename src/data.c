@@ -56,16 +56,20 @@ mat_get(Mat *mat, size_t i, size_t j) {
 
 Mat *
 mat_set_row(Mat *mat, size_t row_idx, double *value) {
+  if (mat == NULL) return NULL;
   double *row = mat->val + mat->col * row_idx;
   memcpy((void *)row, (const void *)value, sizeof(double) * mat->col);
+  return mat;
 }
 
 Mat *
 mat_set_col(Mat *mat, size_t col_idx, double *value) {
   size_t i;
+  if (mat == NULL) return NULL;
   for (i = 0; i < mat->row; ++i) {
     mat_set(mat, i, col_idx, value[i]);
   }
+  return mat;
 }
 
 Mat *

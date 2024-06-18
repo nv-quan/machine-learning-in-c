@@ -120,7 +120,7 @@ START_TEST(test_mat_resize_zero) {
   ck_assert_ptr_nonnull(mat_resize(a, 0, 0));
   ck_assert_uint_eq(a->row, 0);
   ck_assert_uint_eq(a->col, 0);
-  ck_assert_uint_eq(a->capacity, 8);
+  ck_assert_uint_eq(a->capacity, 4);
 
   mat_destr(a);
 }

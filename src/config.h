@@ -9,10 +9,6 @@
 #define CF_CSV_PATH "data/Real estate.csv"
 /* Feature dimension */
 #define CF_FEAT_DIM 3
-/* Learning rate */
-#define CF_LRATE 0.01
-/* Batch size */
-#define CF_BATCH_SZ 1
 
 #define CF_FEAT_COLS {2, 3, 4}
 

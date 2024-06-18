@@ -115,6 +115,7 @@ mmat_transpose(Mat *mat) {
   double temp;
 
   if (mat == NULL) return NULL;
+  if (mat->val == NULL) return NULL;
   mat_transpose(mat->val, mat->row, mat->col);
   temp = mat->col;
   mat->col = mat->row;

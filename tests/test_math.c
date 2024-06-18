@@ -244,12 +244,16 @@ END_TEST
 
 START_TEST(test_mmat_transpose_null) {
   Mat *a, *res;
+  double *temp;
 
   a = mat_creat(2, 2);
   ck_assert_ptr_nonnull(a);
+  temp = a->val;
+  a->val = NULL;
   res = mmat_transpose(a);
   ck_assert_ptr_null(res);
   ck_assert_ptr_nonnull(a);
+  a->val = temp;
   mat_destr(a);
 }
 END_TEST
@@ -309,7 +313,7 @@ math_suite(void) {
   Suite *s;
   TCase *tc_basic, *tc_vec, *tc_mat, *tc_mmat;
 
-  s = suite_create("Math test");
+  s = suite_create("Custom math function test");
 
   // Basic test cases
   tc_basic = tcase_create("Basic");

@@ -65,14 +65,19 @@ int is_one_insered(DLConf *conf);
 
 /* Load Data
  *
- * This function loads data into a buffer (an array of Points) with every call.
- * The [buffer] and [loader] are provided by the caller. There is no allocation
- * inside this function. [nsize] represents the buffer's element count.
+ * Every call to this function load at most nsize points from a data loader to a
+ * buffer. No allocation happens inside this function. After this is called,
+ * calling ld_err(loader) will indicates if an error occurred. After an error
+ * occurred, attempting to call this will result in an undefined behaviour.
  *
- * Returns the number of elements loaded.
- * ld_err(loader) indicates if an error occurred.
- * After an error occurs, attempting to call load_data will result in
- * undefined behavior.
+ * Parameters:
+ * - loader: pointer to the data loader.
+ * - nsize: length of the buffer array.
+ * - buffer: pointer to the buffer array.
+ *
+ * Returns:
+ * - Number of element loaded into buffer on success.
+ * - 0 on failure.
  */
 size_t load_data(DatLoader *loader, size_t nsize, Point *buffer);
 
@@ -82,11 +87,11 @@ size_t load_data(DatLoader *loader, size_t nsize, Point *buffer);
  * done using.
  *
  * Parameters:
- *  dl_conf: pointer to a data_loader_config, borrow from caller
+ * - dl_conf: pointer to a data_loader_config, borrow from caller
  *
  * Return:
- *   NULL on error
- *   pointer to the new data_loader on success
+ * - NULL on error
+ * - pointer to the new data_loader on success
  */
 DatLoader *make_data_loader(DLConf *dl_conf);
 

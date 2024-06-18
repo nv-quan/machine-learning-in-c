@@ -64,11 +64,6 @@ grad_desc(GDConf *gd_conf, DLConf *conf, double *result) {
   retval = TRUE;
 
 cleanup:
-  /*
-  theta = NULL;
-  config = NULL;
-  loader_conf = NULL;
-  */
   mat_destr(temp1);
   mat_destr(Y_mat);
   mat_destr(X_mat);
@@ -87,15 +82,15 @@ calc_loss() {
   size_t i, n;
   double dot_result, loss = 0;
   DatLoader *loader;
-  Point buffer[BUFFER_SIZE], *curr;
+  Point points[BUFFER_SIZE], *curr;
 
   if ((loader = make_data_loader(loader_conf)) == NULL) {
     rp_err("Calculate loss error, can't make data loader");
     return -1; /* No need to cleanup */
   }
-  while (!ld_err(loader) && (n = load_data(loader, BUFFER_SIZE, buffer)) > 0) {
+  while (!ld_err(loader) && (n = load_data(loader, BUFFER_SIZE, points)) > 0) {
     for (i = 0; i < n; ++i) {
-      curr = buffer + i;
+      curr = points + i;
       dot_result = dot_product(curr->x, theta, curr->x_length);
       loss += (dot_result - curr->y) * (dot_result - curr->y);
     }
@@ -111,17 +106,17 @@ calc_loss() {
 }
 
 /*
-static double
-calc_coef(Point *points, size_t len, size_t dim, double alpha) {
-  double coef;
+   static double
+   calc_coef(Point *points, size_t len, size_t dim, double alpha) {
+   double coef;
 
-  coef = 0;
-  while (len--) {
-    coef += alpha * (points[len].y - dot_product(theta, points[len].x, dim));
-  }
-  return coef;
-}
-*/
+   coef = 0;
+   while (len--) {
+   coef += alpha * (points[len].y - dot_product(theta, points[len].x, dim));
+   }
+   return coef;
+   }
+   */
 
 void
 set_xy_mat(Point *points, size_t size) {
@@ -136,28 +131,32 @@ set_xy_mat(Point *points, size_t size) {
 int
 do_gd(DatLoader *loader) {
   Point points[CF_MAX_BUF_SIZE];
-  size_t size, batch_sz, theta_row, theta_col, theta_size;
+  size_t sz, batch_sz, theta_row, theta_col, theta_size, lc_theta_col,
+      lc_theta_row;
   Mat *lc_theta_clone, *lc_x, *lc_y, *lc_theta;
-  int retval = 0;
-  double *theta_val;
+  double *theta_val, *lc_theta_val;
 
-  /*
-  dim = config->dimension;
-  */
   batch_sz = config->batch_size;
 
   if (batch_sz > sizeof(points)) {
     fprintf(stderr, "Batch size too big, use size <= %lu\n", sizeof(points));
-    retval = FALSE;
+    return FALSE;
   }
 
   theta_row = mat_get_rowc(theta_mat);
   theta_col = mat_get_colc(theta_mat);
   theta_size = theta_row * theta_col;
   theta_val = mat_get_val(theta_mat);
-  while (!(ld_err(loader)) &&
-         (size = load_data(loader, batch_sz, points)) > 0) {
-    set_xy_mat(points, size);
+  if (X_mat == NULL || Y_mat == NULL || theta_mat == NULL || temp1 == NULL) {
+    rp_err("do_gd: Can't read allocated memory.");
+    return FALSE;
+  }
+  if (theta_row == 0 || theta_col == 0) {
+    rp_err("do_gd: Theta's dimension is invalid.");
+    return FALSE;
+  }
+  while (!(ld_err(loader)) && (sz = load_data(loader, batch_sz, points)) > 0) {
+    set_xy_mat(points, sz);
     /* Use local pointers to keep global pointers from being changed */
     lc_x = X_mat;
     lc_y = Y_mat;
@@ -173,57 +172,31 @@ do_gd(DatLoader *loader) {
     lc_theta_clone = mmat_add(lc_theta_clone, lc_y);
     lc_theta_clone = mmat_transpose(lc_theta_clone);
     lc_x = mmat_mul(lc_x, lc_theta_clone);
-    lc_x = xmmat_times(lc_x, -1 * config->learn_rate);
-    lc_theta_clone = mmat_add(theta_mat, lc_x);
+    lc_x = mmat_times(lc_x, -1 * config->learn_rate);
+    lc_theta_clone = mmat_add(lc_theta, lc_x);
 
-    /* Save points into X & Y */
-    /*
-    X = make_points_mat_x(points, size);
-    Y = make_points_mat_y(points, size);
-    */
-    /* Temp = mat_creat(1, size); No need for a temp */
-    /*
-    if (mmat_mul(Theta_trans, X) == NULL) {
-      * rp_err("do_gd: Can't do matrix multiplication"); Just return null if
-       * the operation is wrong. Any operation with Mat will need to check for
-       * null in the arguments and return null if it finds one
-      * No need to continuously destroying mat
-      mat_destr(Temp);
-      mat_destr(X);
-      mat_destr(Y);
-
+    /* If some error happens */
+    if (lc_theta_clone == NULL) {
+      rp_err("do_gd: Some errors happened in matrix operations.");
       return FALSE;
     }
-  */
-    /* mmat_neg(Y); */
-    /*
-    if (mmat_add(Temp, Y)) {
-      rp_err("do_gd: Can't do matrix multiplication");
-      mat_destr(Temp);
-      mat_destr(X);
-      mat_destr(Y);
+    lc_theta_col = mat_get_colc(lc_theta_clone);
+    lc_theta_row = mat_get_rowc(lc_theta_clone);
+    lc_theta_val = mat_get_val(lc_theta_clone);
+    if (lc_theta_col != theta_col || lc_theta_row != theta_row) {
+      rp_err("do_gd: Invalid result.");
       return FALSE;
     }
-    */
-
-    /*vec_mul(temp, points.x, coeff, dim);
-    vec_add(theta, theta, temp, dim); */
-    /*
-    mat_destr(Temp);
-    mat_destr(X);
-    mat_destr(Y);
-    */
+    if (!mat_set_val(theta_mat, lc_theta_val, lc_theta_row * lc_theta_col)) {
+      rp_err("do_gd: Can't set theta value");
+      return FALSE;
+    }
   }
   if (ld_err(loader)) {
-    rp_err("SGD load data error");
-    retval = FALSE;
-  } else {
-    retval = TRUE;
+    rp_err("do_gd: SGD load data error.");
+    return FALSE;
   }
-  /*cleanup:*/
-  /* mat_destr(Theta); */
-  /*mat_destr(Theta_trans); */
-  return retval;
+  return TRUE;
 }
 
 void

@@ -1,9 +1,9 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "gradient_descent.h"
 #include "config.h"
 #include "data.h"
+#include "gradient_descent.h"
 #include "io.h"
 
 static void init_grad_desc_conf(GDConf *conf);
@@ -25,10 +25,11 @@ main(void) {
 
 static void
 init_grad_desc_conf(GDConf *conf) {
-  conf->batch_size = CF_BATCH_SZ;
-  conf->learn_rate = CF_LRATE;
+  conf->batch_size = 1;
+  conf->learn_rate = 0.01;
   conf->dimension = 2;
   conf->loss_reporter = report_loss;
+  conf->stop_cond = NULL;
 }
 
 static void
