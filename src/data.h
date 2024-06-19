@@ -23,6 +23,9 @@ typedef struct matrix {
 /* Print the value of a point */
 void log_point(Point* point);
 
+/* Print the values of a mat */
+void log_mat(Mat* mat, const char* name);
+
 /* Create a matrix from an array of values.
  *
  * The newly created mat will not take ownership of the val pointer but only

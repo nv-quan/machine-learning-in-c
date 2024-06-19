@@ -76,7 +76,7 @@ cleanup:
 static int
 default_stop_cond(int epoch, double loss) {
   UNUSED(loss);
-  return epoch >= 1000;
+  return epoch >= 100;
 }
 
 void
@@ -132,6 +132,7 @@ calc_loss() {
     h_x = mmat_mul(lc_theta_transp, lc_x);
     lc_minus_y = mmat_times(lc_y, -1.0);
     diff = mmat_add(h_x, lc_minus_y);
+    /*log_mat(diff, "Diff");*/
     if (diff == NULL) {
       rp_err("loss: Some error happend during loss calculation");
       loss = -1;
@@ -202,6 +203,11 @@ do_gd(DatLoader *loader) {
     lc_y = Y_mat;
     lc_theta = theta_mat;
     lc_theta_clone = temp1;
+    /*
+    log_mat(lc_theta, "Theta");
+    log_mat(lc_x, "X");
+    log_mat(lc_y, "Y");
+    */
 
     /* Chaining assignments to make the final result null if any of them fail */
     lc_theta_clone = mat_resize(lc_theta_clone, theta_row, theta_col);
@@ -213,6 +219,7 @@ do_gd(DatLoader *loader) {
     lc_theta_clone = mmat_transpose(lc_theta_clone);
     lc_x = mmat_mul(lc_x, lc_theta_clone);
     lc_x = mmat_times(lc_x, -1 * config->learn_rate);
+    /*log_mat(lc_x, "Coeff");*/
     lc_theta_clone = mmat_add(lc_theta, lc_x);
 
     /* If some error happens */

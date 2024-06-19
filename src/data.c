@@ -16,6 +16,23 @@ log_point(Point *p) {
   }
 }
 
+void
+log_mat(Mat *mat, const char *name) {
+  size_t i, j;
+
+  if (mat == NULL) {
+    rp_err("Can't log NULL");
+    return;
+  }
+  printf("[MAT %s]\n", name);
+  for (i = 0; i < mat->row; ++i) {
+    for (j = 0; j < mat->col; ++j) {
+      printf("%lf%s", mat_get(mat, i, j), j == mat->col - 1 ? "" : " ");
+    }
+    printf("\n");
+  }
+}
+
 Mat *
 mat_creat(size_t row, size_t col) {
   if (row * col == 0) {
