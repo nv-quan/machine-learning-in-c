@@ -110,6 +110,10 @@ mmat_add(Mat *a, Mat *b) {
   return a;
 }
 
+/* TODO:
+ * 1. Implement a transpose flag in the Mat struct.
+ * 2. Ensure other matrix operations check and respect this transpose flag.
+ */
 Mat *
 mmat_transpose(Mat *mat) {
   double temp;

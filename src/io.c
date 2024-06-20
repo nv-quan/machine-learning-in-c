@@ -6,6 +6,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "config.h"
 #include "data.h"
 #include "utils.h"
 
@@ -122,7 +123,7 @@ load_data_mem(DatLoader *loader, size_t nsize, Point *points) {
   conf = &loader->dl_conf;
   mem_idx = loader->mem_idx;
   mem_size = conf->mem_size;
-  mem = (char *)conf->mem;
+  mem = conf->mem;
 
   /* All data is already read, return */
   if (mem_idx == mem_size) return 0;
@@ -378,4 +379,97 @@ csv_eor(int c, void *custom) {
   ctx->points[ctx->point_idx++].x_length = ctx->loader->dl_conf.x_dim;
   if (is_one_isrt) ctx->points[ctx->point_idx].x[0] = 1.0f;
   reset_point_aug(&ctx->point_aug, is_one_isrt);
+}
+
+typedef struct conf_tree {
+  struct conf_tree *children;
+  size_t child_count;
+  char *name;
+  char *value;
+} ConfTree;
+
+size_t
+get_tree_node_count(ConfTree *tree) {
+  size_t i, n;
+
+  n = 1;
+  for (i = 0; i < tree->child_count; ++i) {
+    n += get_tree_node_count(tree->children + i);
+  }
+  return n;
+}
+
+void
+print_conf_tree(FILE *fp, ConfTree *tree, size_t level) {
+  char prefix[100];
+  size_t i;
+
+  for (i = 0; i < level; ++i) {
+    prefix[2 * i] = ' ';
+    prefix[2 * i + 1] = ' ';
+  }
+  prefix[2 * i] = '\0';
+  fprintf(fp, "%s%s %s\n", prefix, tree->name, tree->value);
+  for (i = 0; i < tree->child_count; ++i) {
+    print_conf_tree(fp, tree->children + i, level + 1);
+  }
+}
+
+void
+conf_tree_set(ConfTree *t, char *n, char *v, size_t s, ConfTree *c) {
+  t->child_count = s;
+  t->name = n;
+  t->value = v;
+  t->children = c;
+}
+
+void
+conf_tree_init(ConfTree *tree, char *name, char *val, ConfTree *children) {
+  conf_tree_set(tree, name, val, 0, children);
+}
+
+ConfTree *
+conf_tree_add(ConfTree *tree, char *name, char *val, ConfTree *children) {
+  ConfTree *res = tree->children + tree->child_count++;
+  conf_tree_set(res, name, val, 0, children);
+  return res;
+}
+
+int
+save_dlconf(DLConf *conf, const char *file_path) {
+  FILE *fp;
+  ConfTree root, root_children[7], opt_children[3], *curr,
+      xcols_children[CF_MAX_DIM];
+  char num[CF_MAX_DIM + 10][10];
+  size_t num_idx, i;
+
+  if (conf == NULL) return -1;
+  if ((fp = fopen(file_path, "w")) == NULL) {
+    fprintf(stderr, "make_data_loader: Can't open file %s\n", file_path);
+    return -1;
+  }
+  conf_tree_init(&root, "DATA_LOADER_CONFIG", "", root_children);
+  curr = conf_tree_add(&root, "OPTIONS", "", opt_children);
+  if (is_mem_based(conf)) conf_tree_add(curr, "MEM_BASED", "", NULL);
+  if (has_header(conf)) conf_tree_add(curr, "HAS_HEADER", "", NULL);
+  if (is_one_insered(conf)) conf_tree_add(curr, "INSERT_ONE", "", NULL);
+  num_idx = 0;
+  if (is_mem_based(conf)) {
+    conf_tree_add(&root, "MEM", conf->mem, NULL);
+    sprintf(num[num_idx++], "%lu", conf->mem_size);
+    conf_tree_add(&root, "MEM_SIZE", num[num_idx - 1], NULL);
+  }
+  sprintf(num[num_idx++], "%lu", conf->x_dim);
+  conf_tree_add(&root, "X_DIM", num[num_idx - 1], NULL);
+  sprintf(num[num_idx++], "%d", conf->y_col);
+  conf_tree_add(&root, "Y_COL", num[num_idx - 1], NULL);
+  curr = conf_tree_add(&root, "X_COLS", "", xcols_children);
+  for (i = 0; i < conf->x_dim; ++i) {
+    sprintf(num[num_idx++], "%d", conf->x_cols[i]);
+    conf_tree_add(curr, "VAL", num[num_idx - 1], NULL);
+  }
+  conf_tree_add(&root, "FILE_PATH", conf->file_path, NULL);
+  print_conf_tree(fp, &root, 0);
+  fclose(fp);
+  return 0;
 }

@@ -30,6 +30,7 @@ main(void) {
   signal(SIGINT, intHandler);
   init_grad_desc_conf(&grad_desc_conf);
   init_loader_conf(&data_loader_conf);
+  save_dlconf(&data_loader_conf, "data/loader_conf.txt");
   grad_desc(&grad_desc_conf, &data_loader_conf, result);
   printf("Result:");
   for (i = 0; i < grad_desc_conf.dimension; ++i) {
