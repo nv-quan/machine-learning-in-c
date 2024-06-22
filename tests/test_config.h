@@ -2,8 +2,6 @@
 #define TEST_CONFIG_H
 
 #define TCF_PATH_LEN 1000
-/* Input csv file path */
-#define TCF_CSV_PATH "test_data.csv"
 /* Feature dimension */
 #define TCF_FEAT_DIM 3
 /* Learning rate */

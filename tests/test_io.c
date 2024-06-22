@@ -48,10 +48,11 @@ END_TEST
 START_TEST(test_point_io_file_insert_one) {
   DLConf conf;
   Point point;
+  char csv_path[] = "test_data.csv";
   int n, i, feature_columns[] = {2, 3, 4};
   double y = 37.9f, x[] = {1.0f, 32.0f, 84.87882f, 10.0f};
 
-  strcpy(conf.file_path, TCF_CSV_PATH);
+  memcpy(conf.file_path, csv_path, sizeof(csv_path));
   conf.x_dim = 4;
   for (i = 0; i < 3; ++i) {
     conf.x_cols[i + 1] = feature_columns[i];
@@ -262,7 +263,7 @@ init_dlconf_file(DLConf *conf) {
   int i;
   int feature_columns[] = {2, 3, 4};
 
-  snprintf(conf->file_path, 1000, "%s", TCF_CSV_PATH);
+  snprintf(conf->file_path, 1000, "test_data.csv");
   conf->x_dim = 3;
   for (i = 0; i < 3; ++i) {
     conf->x_cols[i] = feature_columns[i];

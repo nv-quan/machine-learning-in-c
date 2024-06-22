@@ -138,3 +138,54 @@ mat_get_val(Mat *mat) {
   if (mat == NULL) return NULL;
   return mat->val;
 }
+
+Str *
+str_creat(size_t size) {
+  Str *res;
+  char *raw;
+
+  if (size == 0) return NULL;
+  res = (Str *)malloc(sizeof(Str));
+  if (res == NULL) return NULL;
+  raw = (char *)malloc(size);
+  if (raw == NULL) {
+    free(res);
+    return NULL;
+  }
+  res->raw = raw;
+  res->size = size;
+  res->capacity = size;
+}
+
+Str *
+str_creat_from_literal(const char *literal) {
+  size_t size;
+  Str *res;
+
+  /* Strlen is used assuming the user passed a literal string. Here size is the
+   * length of the string plus the NULL character.
+   */
+  size = strlen(literal) + 1;
+  res = str_creat(size);
+  memcpy(res->raw, literal, size);
+  return res;
+}
+
+char *
+str_get_raw(Str *string) {
+  if (string == NULL) return NULL;
+  return string->raw;
+}
+
+size_t
+str_get_size(Str *string) {
+  if (string == NULL) return 0;
+  return string->size;
+}
+
+void
+str_destr(Str *string) {
+  if (string == NULL) return;
+  free(string->raw);
+  free(string);
+}
