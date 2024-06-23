@@ -155,19 +155,20 @@ str_creat(size_t size) {
   res->raw = raw;
   res->size = size;
   res->capacity = size;
+  return res;
 }
 
 Str *
-str_creat_from_literal(const char *literal) {
+str_creat_from_char_arr(const char *char_arr) {
   size_t size;
   Str *res;
 
-  /* Strlen is used assuming the user passed a literal string. Here size is the
-   * length of the string plus the NULL character.
+  /* Strlen is used assuming the user passed a null-terminated string. Here size
+   * is the length of the string plus the NULL character.
    */
-  size = strlen(literal) + 1;
+  size = strlen(char_arr) + 1;
   res = str_creat(size);
-  memcpy(res->raw, literal, size);
+  memcpy(res->raw, char_arr, size);
   return res;
 }
 

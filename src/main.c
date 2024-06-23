@@ -65,14 +65,14 @@ report_loss(int epoch, double loss) {
 static void
 init_loader_conf(DLConf *conf) {
   char path[] = "tests/test_data.csv";
-  if (path_len == CF_PATH_LEN) {
+  if (sizeof(path) >= sizeof(conf->file_path)) {
     rp_warn("init_loader_conf: path potentially too long");
   }
+  s_strcpy(conf->file_path, path, sizeof(conf->file_path));
   conf->options = DL_INSERT_ONE | DL_HAS_HEADER;
   conf->x_dim = 4;
   conf->y_col = 7;
   conf->x_cols[1] = 2;
   conf->x_cols[2] = 3;
   conf->x_cols[3] = 4;
-  memcpy(conf->file_path, path, sizeof(path));
 }

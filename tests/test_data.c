@@ -3,6 +3,7 @@
 #include <check.h>
 
 #include "data.h"
+#include "utils.h"
 
 START_TEST(test_mat_create) {
   Mat *mat;

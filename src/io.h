@@ -51,7 +51,7 @@ typedef struct data_loader_config {
   int x_cols[CF_MAX_DIM];
 
   /* File path */
-  char file_path[CF_PATH_LEN];
+  char file_path[LONG_STR_LEN];
 } DLConf;
 
 /* Augmented data structure for point */

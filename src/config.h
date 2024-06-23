@@ -16,4 +16,7 @@
 #define CF_MAX_DIM 100
 #define CF_MAX_BUF_SIZE 1024
 
+#define SHORT_STR_LEN 256
+#define LONG_STR_LEN 1024
+
 #endif /* ifndef CONFIG_H */

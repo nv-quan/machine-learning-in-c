@@ -384,37 +384,33 @@ csv_eor(int c, void *custom) {
 int
 save_dlconf(DLConf *conf, const char *file_path) {
   FILE *fp;
-  ConfTree root, root_children[7], opt_children[3], *curr,
-      xcols_children[CF_MAX_DIM];
-  char num[CF_MAX_DIM + 10][10];
-  size_t num_idx, i;
+  ConfTree root, *curr;
+  char numstr[SHORT_STR_LEN];
+  size_t i;
 
-  if (conf == NULL) return -1;
+  ZERO_RETURN(conf);
   if ((fp = fopen(file_path, "w")) == NULL) {
     fprintf(stderr, "make_data_loader: Can't open file %s\n", file_path);
     return -1;
   }
-  conf_tree_init(&root, "DATA_LOADER_CONFIG", "", root_children);
-  curr = conf_tree_add(&root, "OPTIONS", "", opt_children);
-  if (is_mem_based(conf)) conf_tree_add(curr, "MEM_BASED", "", NULL);
-  if (has_header(conf)) conf_tree_add(curr, "HAS_HEADER", "", NULL);
-  if (is_one_insered(conf)) conf_tree_add(curr, "INSERT_ONE", "", NULL);
-  num_idx = 0;
+  NZERO_RETURN(conf_tree_init(&root, "DATA_LOADER_CONFIG", ""));
+  ZERO_RETURN(curr = conf_tree_add(&root, "OPTIONS", ""));
   if (is_mem_based(conf)) {
-    conf_tree_add(&root, "MEM", conf->mem, NULL);
-    sprintf(num[num_idx++], "%lu", conf->mem_size);
-    conf_tree_add(&root, "MEM_SIZE", num[num_idx - 1], NULL);
+    rp_err("save_dlconf: Mem-based configs are not supported.");
+    return -1;
   }
-  sprintf(num[num_idx++], "%lu", conf->x_dim);
-  conf_tree_add(&root, "X_DIM", num[num_idx - 1], NULL);
-  sprintf(num[num_idx++], "%d", conf->y_col);
-  conf_tree_add(&root, "Y_COL", num[num_idx - 1], NULL);
-  curr = conf_tree_add(&root, "X_COLS", "", xcols_children);
+  ZERO_RETURN(has_header(conf) && conf_tree_add(curr, "HAS_HEADER", ""));
+  ZERO_RETURN(is_one_insered(conf) && conf_tree_add(curr, "INSERT_ONE", ""));
+  sprintf(numstr, "%lu", conf->x_dim);
+  ZERO_RETURN(conf_tree_add(&root, "X_DIM", numstr));
+  sprintf(numstr, "%d", conf->y_col);
+  ZERO_RETURN(conf_tree_add(&root, "Y_COL", numstr));
+  ZERO_RETURN(curr = conf_tree_add(&root, "X_COLS", ""));
   for (i = 0; i < conf->x_dim; ++i) {
-    sprintf(num[num_idx++], "%d", conf->x_cols[i]);
-    conf_tree_add(curr, "VAL", num[num_idx - 1], NULL);
+    sprintf(numstr, "%d", conf->x_cols[i]);
+    ZERO_RETURN(conf_tree_add(curr, "VAL", numstr));
   }
-  conf_tree_add(&root, "FILE_PATH", conf->file_path, NULL);
+  ZERO_RETURN(conf_tree_add(&root, "FILE_PATH", conf->file_path));
   print_conf_tree(fp, &root, 0);
   fclose(fp);
   return 0;
@@ -426,9 +422,10 @@ load_dlconf(const char *file_path) {
   ConfTree *root;
 
   if ((fp = fopen(file_path, "w")) == NULL) {
-    fprintf(stderr, "make_data_loader: Can't open file %s\n", file_path);
-    return -1;
+    fprintf(stderr, "load_dlconf: Can't open file %s\n", file_path);
+    return NULL;
   }
-  root = scan_conf_tree(fp, 0);
+  root = scan_conf_tree(fp);
   fclose(fp);
+  return NULL;
 }

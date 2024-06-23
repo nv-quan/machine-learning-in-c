@@ -3,7 +3,6 @@
 #include <stdlib.h>
 
 #include "config.h"
-#include "utils.h"
 
 /* (x, y) data point where x is array of n length and y is double */
 typedef struct point_data {
@@ -184,12 +183,12 @@ Str *str_clone(Str *s);
 Str *str_creat_from_raw(const char *raw, size_t size);
 */
 
-/* Create a Str from a literal string
+/* Create a Str from a null-terminated string
  *
  * This is provided for convenience. However this function is unsafe when
  * passed a regular string.
  */
-Str *str_creat_from_literal(const char *literal);
+Str *str_creat_from_char_arr(const char *char_arr);
 
 /* Safely get the raw character array from a Str
  *

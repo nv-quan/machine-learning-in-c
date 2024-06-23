@@ -3,6 +3,9 @@
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
+
+#include "data.h"
 
 void *
 safe_malloc(size_t size) {
@@ -19,6 +22,17 @@ safe_free(void **p) {
   if (!(*p)) return;
   free(*p);
   *p = NULL;
+}
+
+size_t
+s_strcpy(char *dst, const char *src, size_t dstsize) {
+  size_t src_len, res;
+  if (dst == NULL || src == NULL) return 0;
+  src_len = strnlen(src, dstsize);
+  res = src_len < (dstsize - 1) ? src_len : (dstsize - 1);
+  memcpy(dst, src, res);
+  dst[res] = '\0';
+  return res;
 }
 
 /* TODO: Write rp_err version that accepts format */
@@ -51,7 +65,7 @@ conf_tree_get_node_count(ConfTree *tree) {
 
 void
 print_conf_tree(FILE *fp, ConfTree *tree, size_t level) {
-  char prefix[MAX_NAME_LEN];
+  char prefix[SHORT_STR_LEN];
   size_t i;
 
   for (i = 0; i < level; ++i) {
@@ -65,6 +79,7 @@ print_conf_tree(FILE *fp, ConfTree *tree, size_t level) {
   }
 }
 
+/*
 void
 conf_tree_set(ConfTree *t, char *n, char *v, size_t s, ConfTree *c) {
   t->child_count = s;
@@ -72,59 +87,81 @@ conf_tree_set(ConfTree *t, char *n, char *v, size_t s, ConfTree *c) {
   t->value = v;
   t->children = c;
 }
+*/
 
-ConfTree *
-conf_tree_init(ConfTree *tree, const char *lit_name, const char *lit_value) {
-  Str *tree_name, *tree_val;
-
-  if (tree == NULL) return NULL;
-  tree_name = str_creat_from_literal(lit_name);
-  if (tree_name == NULL) return NULL;
-  tree_val = str_creat_from_literal(lit_value);
-  if (tree_val == NULL) {
-    str_destr(tree_name);
+int
+conf_tree_init(ConfTree *tree, const char *name, const char *value) {
+  if (tree == NULL || name == NULL) return -1;
+  s_strcpy(tree->name, name, sizeof(tree->name));
+  if (value == NULL) {
+    tree->value[0] = '\0';
+  } else {
+    s_strcpy(tree->value, value, sizeof(tree->value));
   }
-  tree->name = tree_name;
-  tree->value = tree_value;
   tree->children = NULL;
   tree->children_capacity = 0;
   tree->child_count = 0;
-  return tree;
+  return 0;
 }
 
+void
+conf_tree_free(ConfTree *tree) {
+  size_t i;
+
+  if (tree == NULL) return;
+  for (i = 0; i < tree->child_count && tree->children; ++i) {
+    conf_tree_free(tree->children + i);
+  }
+  if (tree->children) free(tree->children);
+}
+
+/*
 ConfTree *
 conf_tree_add(ConfTree *tree, char *name, char *val, ConfTree *children) {
   ConfTree *res = tree->children + tree->child_count++;
   conf_tree_set(res, name, val, 0, children);
   return res;
 }
+*/
 
 ConfTree *
-conf_tree_add_child(ConfTree *parent, const char *name, size_t name_size) {
-  ConfTree *temp, *child;
+conf_tree_add(ConfTree *parent, const char *name, const char *val) {
+  ConfTree *child, *temp;
   size_t new_cap;
   if (parent == NULL) return NULL;
-  if (parent->children_capacity > 0 && parent->children == NULL) {
-    return NULL;
-  }
+  if (parent->child_count > parent->children_capacity) return NULL;
+  if (parent->children_capacity > 0 && parent->children == NULL) return NULL;
   if (parent->children_capacity == 0) {
-    if (parent->child_count != 0) return NULL;
-    parent->children = conf_tree_creat(name, name_size);
-    if (!parent->children) return NULL;
+    child = (ConfTree *)malloc(sizeof(ConfTree));
+    if (child == NULL) return NULL;
+    if (conf_tree_init(child, name, val) != 0) goto failed1;
+    if (parent->children != NULL) goto failed2;
+    parent->children = child;
     parent->child_count++;
     parent->children_capacity++;
     return child;
+  failed2:
+    conf_tree_free(child);
+  failed1:
+    free(child);
+    return NULL;
   }
-  if (parent->child_count > parent->children_capacity) return NULL;
   if (parent->child_count == parent->children_capacity) {
+    if (parent->children_capacity > SIZE_MAX / (size_t)2) return NULL;
     new_cap = parent->children_capacity * 2;
     temp = (ConfTree *)realloc(parent->children, sizeof(ConfTree) * new_cap);
-    if (!temp) return NULL;
+    if (temp == NULL) return NULL;
     parent->children = temp;
+    parent->children_capacity = new_cap;
   }
-  child = parent->children + parent->child_count++;
+  /* parent->child_count < parent->children_capacity */
+  if (conf_tree_init(parent->children + parent->child_count, name, val) != 0) {
+    return NULL;
+  }
+  return parent->children + parent->child_count++;
 }
 
+/*
 void
 conf_tree_destr(ConfTree *tree) {
   size_t i;
@@ -133,44 +170,53 @@ conf_tree_destr(ConfTree *tree) {
   for (i = 0; i < tree->child_count && tree->children; ++i) {
     conf_tree_destr(tree->children + i);
   }
-  if (tree->children) free(tree->children);
   safe_free((void **)&tree->name);
   safe_free((void **)&tree->value);
   safe_free((void **)&tree);
 }
+*/
 
+/*
 ConfTree *
-conf_tree_creat(const char *name, size_t name_size) {
+conf_tree_creat(const char *name, const char *val) {
   ConfTree *res;
-  char *res_name;
+  Str *tree_name, *tree_val;
 
-  if (name == NULL) {
-    rp_err("conf_tree_creat: can't create conf tree with NULL name");
-    return NULL;
+  if (name == NULL) return NULL;
+  tree_name = str_creat_from_char_arr(name);
+  if (tree_name == NULL) return NULL;
+  tree_val = NULL;
+  res = NULL;
+  if (value) {
+    tree_val = str_creat_from_char_arr(value);
+    if (tree_val == NULL) goto cleanup1;
   }
-  res_name = (char *)malloc(name_size);
-  if (!res_name) return NULL;
-  if (!(res = (ConfTree *)malloc(sizeof(ConfTree)))) {
-    free(res_name);
-    return NULL;
-  }
-  res->name = res_name;
-  res->value = NULL;
+  res = (ConfTree *)malloc(sizeof(ConfTree));
+  if (res == NULL) goto cleanup2;
   res->children = NULL;
-  res->child_count = 0;
   res->children_capacity = 0;
+  res->child_count = 0;
+  res->name = tree_name;
+  res->value = tree_val;
+  return res;
+cleanup2:
+  if (tree_val) str_destr(tree_val);
+cleanup1:
+  str_destr(tree_name);
   return res;
 }
+*/
 
 ConfTree *
 scan_conf_tree(FILE *fp) {
-  char line[MAX_NAME_LEN];
+  char line[SHORT_STR_LEN];
   size_t i, level;
-  ConfTree *root = ConfTree * parent;
+  ConfTree root, *parent;
   /* Read until end-of-file is reached */
   level = 0;
-  parent = root;
-  while (fgets(line, MAX_NAME_LEN, fp)) {
+  parent = &root;
+  i = 0;
+  while (fgets(line, SHORT_STR_LEN, fp)) {
     while (line[i] == ' ') i++;
     if (i % 2 != 0) {
       rp_err("scan_conf_tree: Wrong number of space prefix");
