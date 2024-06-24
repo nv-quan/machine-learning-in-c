@@ -8,17 +8,6 @@
 #include "data.h"
 #include "utils.h"
 
-START_TEST(test_double_eq) {
-  double a = 1.23456;
-  double b = 1.23457;
-  double c = 1.234561;
-  double d = 1.234559;
-  ck_assert(!double_eq(a, b));
-  ck_assert(double_eq(a, c));
-  ck_assert(double_eq(c, d));
-}
-END_TEST
-
 START_TEST(test_dot_product) {
   double a[] = {1.5, 2.9, 10.21};
   double b[] = {7, -12.2, 0.11122};
@@ -311,14 +300,9 @@ END_TEST
 Suite *
 math_suite(void) {
   Suite *s;
-  TCase *tc_basic, *tc_vec, *tc_mat, *tc_mmat;
+  TCase *tc_vec, *tc_mat, *tc_mmat;
 
   s = suite_create("Custom math function test");
-
-  // Basic test cases
-  tc_basic = tcase_create("Basic");
-  tcase_add_test(tc_basic, test_double_eq);
-  suite_add_tcase(s, tc_basic);
 
   // Vector test cases
   tc_vec = tcase_create("Vector");

@@ -25,10 +25,15 @@ safe_free(void **p) {
 }
 
 size_t
-s_strcpy(char *dst, const char *src, size_t dstsize) {
+s_strcpy(char *dst, const char *src, size_t dstsize, int *is_trunc) {
   size_t src_len, res;
   if (dst == NULL || src == NULL) return 0;
   src_len = strnlen(src, dstsize);
+  if (src_len == dstsize) {
+    *is_trunc = 1;
+  } else {
+    *is_trunc = 0;
+  }
   res = src_len < (dstsize - 1) ? src_len : (dstsize - 1);
   memcpy(dst, src, res);
   dst[res] = '\0';
@@ -92,11 +97,14 @@ conf_tree_set(ConfTree *t, char *n, char *v, size_t s, ConfTree *c) {
 int
 conf_tree_init(ConfTree *tree, const char *name, const char *value) {
   if (tree == NULL || name == NULL) return -1;
-  s_strcpy(tree->name, name, sizeof(tree->name));
+  int is_trunc;
+  s_strcpy(tree->name, name, sizeof(tree->name), &is_trunc);
+  if (is_trunc) return -1;
   if (value == NULL) {
     tree->value[0] = '\0';
   } else {
-    s_strcpy(tree->value, value, sizeof(tree->value));
+    s_strcpy(tree->value, value, sizeof(tree->value), &is_trunc);
+    if (is_trunc) rp_warn("conf_tree_init: value is truncated");
   }
   tree->children = NULL;
   tree->children_capacity = 0;

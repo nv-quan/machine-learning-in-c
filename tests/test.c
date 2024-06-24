@@ -5,6 +5,7 @@
 #include "test_data.h"
 #include "test_io.h"
 #include "test_math.h"
+#include "test_utils.h"
 #include "utils.h"
 
 Suite *
@@ -20,6 +21,7 @@ main(void) {
   SRunner *sr;
 
   sr = srunner_create(master_suite());
+  srunner_add_suite(sr, utils_suite());
   srunner_add_suite(sr, io_suite());
   srunner_add_suite(sr, data_suite());
   srunner_add_suite(sr, math_suite());

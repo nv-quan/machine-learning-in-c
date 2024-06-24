@@ -35,9 +35,10 @@ int double_eq(double a, double b);
  * This function never read more than dstsize from src. The end of the array
  * is null-terminated. This mimics the functionality of strscpy in linux kernel
  * but without reporting truncation. The return value is the size of the newly
- * copied string minus 1 (for the NUL character).
+ * copied string minus 1 (for the NUL character). When the src is truncated,
+ * is_trunc will be set.
  */
-size_t s_strcpy(char *dst, const char *src, size_t dstsize);
+size_t s_strcpy(char *dst, const char *src, size_t dstsize, int *is_trunc);
 
 /* Config tree.
  *

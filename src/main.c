@@ -68,7 +68,8 @@ init_loader_conf(DLConf *conf) {
   if (sizeof(path) >= sizeof(conf->file_path)) {
     rp_warn("init_loader_conf: path potentially too long");
   }
-  s_strcpy(conf->file_path, path, sizeof(conf->file_path));
+  int is_trunc;
+  s_strcpy(conf->file_path, path, sizeof(conf->file_path), &is_trunc);
   conf->options = DL_INSERT_ONE | DL_HAS_HEADER;
   conf->x_dim = 4;
   conf->y_col = 7;
