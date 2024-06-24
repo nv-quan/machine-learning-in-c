@@ -14,14 +14,14 @@
  *
  * Useful when do error check on functions that return pointers.
  */
-#define NZERO_RETURN(X) \
+#define GUARD_NZERO_NEG(X) \
   if (X) return -1
 
 /* Return early when X is zero.
  *
  * Useful when do error check on functions that return value.
  */
-#define ZERO_RETURN(X) \
+#define GUARD_ZERO_NEG(X) \
   if (!(X)) return -1
 
 void *safe_malloc(size_t size);
@@ -86,7 +86,6 @@ void conf_tree_free(ConfTree *tree);
  * - NULL pointer on failure
  */
 ConfTree *conf_tree_add(ConfTree *parent, const char *name, const char *val);
-size_t conf_tree_get_node_count(ConfTree *tree);
 void print_conf_tree(FILE *fp, ConfTree *tree, size_t level);
 ConfTree *scan_conf_tree(FILE *fp);
 

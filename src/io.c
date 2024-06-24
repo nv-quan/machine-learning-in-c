@@ -388,29 +388,29 @@ save_dlconf(DLConf *conf, const char *file_path) {
   char numstr[SHORT_STR_LEN];
   size_t i;
 
-  ZERO_RETURN(conf);
+  GUARD_ZERO_NEG(conf);
   if ((fp = fopen(file_path, "w")) == NULL) {
     fprintf(stderr, "make_data_loader: Can't open file %s\n", file_path);
     return -1;
   }
-  NZERO_RETURN(conf_tree_init(&root, "DATA_LOADER_CONFIG", ""));
-  ZERO_RETURN(curr = conf_tree_add(&root, "OPTIONS", ""));
+  GUARD_NZERO_NEG(conf_tree_init(&root, "DATA_LOADER_CONFIG", ""));
+  GUARD_ZERO_NEG(curr = conf_tree_add(&root, "OPTIONS", ""));
   if (is_mem_based(conf)) {
     rp_err("save_dlconf: Mem-based configs are not supported.");
     return -1;
   }
-  ZERO_RETURN(has_header(conf) && conf_tree_add(curr, "HAS_HEADER", ""));
-  ZERO_RETURN(is_one_insered(conf) && conf_tree_add(curr, "INSERT_ONE", ""));
+  GUARD_ZERO_NEG(has_header(conf) && conf_tree_add(curr, "HAS_HEADER", ""));
+  GUARD_ZERO_NEG(is_one_insered(conf) && conf_tree_add(curr, "INSERT_ONE", ""));
   sprintf(numstr, "%lu", conf->x_dim);
-  ZERO_RETURN(conf_tree_add(&root, "X_DIM", numstr));
+  GUARD_ZERO_NEG(conf_tree_add(&root, "X_DIM", numstr));
   sprintf(numstr, "%d", conf->y_col);
-  ZERO_RETURN(conf_tree_add(&root, "Y_COL", numstr));
-  ZERO_RETURN(curr = conf_tree_add(&root, "X_COLS", ""));
+  GUARD_ZERO_NEG(conf_tree_add(&root, "Y_COL", numstr));
+  GUARD_ZERO_NEG(curr = conf_tree_add(&root, "X_COLS", ""));
   for (i = 0; i < conf->x_dim; ++i) {
     sprintf(numstr, "%d", conf->x_cols[i]);
-    ZERO_RETURN(conf_tree_add(curr, "VAL", numstr));
+    GUARD_ZERO_NEG(conf_tree_add(curr, "VAL", numstr));
   }
-  ZERO_RETURN(conf_tree_add(&root, "FILE_PATH", conf->file_path));
+  GUARD_ZERO_NEG(conf_tree_add(&root, "FILE_PATH", conf->file_path));
   print_conf_tree(fp, &root, 0);
   fclose(fp);
   return 0;
