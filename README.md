@@ -22,6 +22,7 @@ for real-world use.
     multiplications.
     - `gradient_descent.c` & `gradient_descent.h`: an example for gradient
       descent.
+    - `utils.c` & `utils.h`: utility functions.
 - `tests`: unit testing, using [Check](https://github.com/libcheck/check)
 
 ## How to build
