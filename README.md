@@ -25,6 +25,10 @@ for real-world use.
     - `utils.c` & `utils.h`: utility functions.
 - `tests`: unit testing, using [Check](https://github.com/libcheck/check)
 
+## Dependencies
+- [libcsv](https://github.com/rgamble/libcsv) for CSV parsing.
+- [check](https://github.com/libcheck/check) for unit testing.
+
 ## How to build
 - GNU Autotools are required to generate build files
 
