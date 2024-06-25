@@ -1,10 +1,9 @@
 # A Machine Learning library written in C
 
-## Why
-I just want to write a ML framework in C to learn about ML. This is not intended
-for real-world use.
+An educational project to implement some features of a machine learning
+framework in C. This is not intended for real-world use.
 
-### Features
+## Features (TODO)
 - [x] Data loader for CSV
 - [x] A naive implementation of matrix operations
 - [ ] Autograd feature
