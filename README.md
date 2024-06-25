@@ -24,7 +24,7 @@ for real-world use.
       descent.
 - `tests`: unit testing, using [Check](https://github.com/libcheck/check)
 
-## How to build**
+## How to build
 - GNU Autotools are required to generate build files
 
 ```bash
