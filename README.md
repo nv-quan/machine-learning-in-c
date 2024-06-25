@@ -1,6 +1,32 @@
-Machine learning algorithms implementation in C
+# A Machine Learning library written in C
 
-**How to build**
+## Why
+I just want to write a ML framework in C to learn about ML. This is not intended
+for real-world use.
+
+### Features
+- [x] Data loader for CSV
+- [x] A naive implementation of matrix operations
+- [ ] Autograd feature
+- [ ] Config serialize/deserialize
+- [ ] Checkpoint saving
+- [ ] Example algorithms
+  - [x] Gradient descent for linear regression
+
+## Project structures
+- `src`:
+    - `data.c` & `data.h`: data definition and data handling, such as Point,
+      Matrix, Dynamic string.
+    - `io.c` & `io.h`: for read/writing configs, checkpoints, etc.
+    - `custom_math.c` & `custom_math.h`: for math functions like matrix
+    multiplications.
+    - `gradient_descent.c` & `gradient_descent.h`: an example for gradient
+      descent.
+- `tests`: unit testing, using [Check](https://github.com/libcheck/check)
+
+## How to build**
+- GNU Autotools are required to generate build files
+
 ```bash
 ./autogen.sh
 make
@@ -8,14 +34,11 @@ make
 make check
 ```
 
-**Coding conventions**
+- To remove all build files, run `./autoremove.sh`
 
+## Misc.
+
+### Coding conventions
 - C99 compatible.
 - Make a best effort to follow C89, except in cases where it makes the code harder to read (e.g., the rule for 6 significant characters for external variable names).
 - Only use goto for cleaning up in error handling, as C does not support exceptions.
-
-**Memory ownership model**
-
-- If a function is passed a pointer, do not free that pointer.
-- If a function is passed a pointer to a pointer, i.e. \*\*p, that function can free \*p and set \*p to null. So that the caller of that function will know that the pointer is already freed
-- A function that allocates memory owns it and must be responsible for freeing it, except in cases where it explicitly states ownership transfer.

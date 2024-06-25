@@ -169,68 +169,64 @@ conf_tree_add(ConfTree *parent, const char *name, const char *val) {
   return parent->children + parent->child_count++;
 }
 
-/*
-void
-conf_tree_destr(ConfTree *tree) {
-  size_t i;
-
-  if (tree == NULL) return;
-  for (i = 0; i < tree->child_count && tree->children; ++i) {
-    conf_tree_destr(tree->children + i);
-  }
-  safe_free((void **)&tree->name);
-  safe_free((void **)&tree->value);
-  safe_free((void **)&tree);
-}
-*/
-
-/*
-ConfTree *
-conf_tree_creat(const char *name, const char *val) {
-  ConfTree *res;
-  Str *tree_name, *tree_val;
-
-  if (name == NULL) return NULL;
-  tree_name = str_creat_from_char_arr(name);
-  if (tree_name == NULL) return NULL;
-  tree_val = NULL;
-  res = NULL;
-  if (value) {
-    tree_val = str_creat_from_char_arr(value);
-    if (tree_val == NULL) goto cleanup1;
-  }
-  res = (ConfTree *)malloc(sizeof(ConfTree));
-  if (res == NULL) goto cleanup2;
-  res->children = NULL;
-  res->children_capacity = 0;
-  res->child_count = 0;
-  res->name = tree_name;
-  res->value = tree_val;
-  return res;
-cleanup2:
-  if (tree_val) str_destr(tree_val);
-cleanup1:
-  str_destr(tree_name);
-  return res;
-}
-*/
-
 ConfTree *
 scan_conf_tree(FILE *fp) {
-  char line[SHORT_STR_LEN];
-  size_t i, level;
-  ConfTree root, *parent;
-  /* Read until end-of-file is reached */
-  level = 0;
-  parent = &root;
-  i = 0;
-  while (fgets(line, SHORT_STR_LEN, fp)) {
-    while (line[i] == ' ') i++;
-    if (i % 2 != 0) {
-      rp_err("scan_conf_tree: Wrong number of space prefix");
+  char line[LONGER_STR_LEN], ch;
+  int space_count, prev_level, curr_level, line_num, char_count, delim_count;
+  int delim_pos;
+  ConfTree root;
+  ConfTree *stack[MAX_CONF_TREE_STACK], *cur_tree;
+  prev_level = -1;
+  line_num = 0;
+  while (fgets(line, LONGER_STR_LEN, fp)) {
+    line_num++;
+    space_count = 0;
+    while (line[space_count] == ' ') space_count++;
+    curr_level = space_count / 2;
+    if (space_count % 2 != 0) {
+      fprintf(stderr, "scan_conf_tree:%d: odd number of spaces\n", line_num);
+      if (line_num > 1) conf_tree_free(&root);
       return NULL;
     }
-    if (level == i / 2) {
+    if (curr_level > prev_level + 1) {
+      fprintf(stderr, "scan_conf_tree:%d: invalid indentation\n", line_num);
+      if (line_num > 1) conf_tree_free(&root);
+      return NULL;
     }
+    char_count = 0;
+    delim_count = 0;
+    while ((ch = line[space_count + char_count]) && ch != '\n') {
+      if (ch == ' ') {
+        delim_count++;
+        line[space_count + char_count] = '\0';
+        delim_pos = space_count + char_count;
+      }
+      char_count++;
+    }
+    if (delim_count == 0) delim_pos = space_count + char_count - 1;
+    if (char_count == 0) {
+      fprintf(stderr, "scan_conf_tree:%d: empty line not allowed\n", line_num);
+      if (line_num > 1) conf_tree_free(&root);
+      return NULL;
+    }
+    if (delim_count > 1) {
+      fprintf(stderr, "scan_conf_tree:%d: more than 1 deliminater\n", line_num);
+      if (line_num > 1) conf_tree_free(&root);
+      return NULL;
+    }
+    line[space_count + char_count] = '\0';
+    if (line_num == 1) {
+      conf_tree_init(&root, line + space_count, line + delim_pos + 1);
+      stack[0] = &root;
+    } else {
+      cur_tree = conf_tree_add(stack[curr_level - 1], line + space_count,
+                               line + delim_pos + 1);
+      if (cur_tree == NULL) {
+        conf_tree_free(&root);
+        return NULL;
+      }
+      stack[curr_level] = cur_tree;
+    }
+    prev_level = curr_level;
   }
 }

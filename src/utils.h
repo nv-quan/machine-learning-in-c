@@ -88,6 +88,9 @@ void conf_tree_free(ConfTree *tree);
  */
 ConfTree *conf_tree_add(ConfTree *parent, const char *name, const char *val);
 void print_conf_tree(FILE *fp, ConfTree *tree, size_t level);
+
+#define MAX_CONF_TREE_STACK 20
+
 ConfTree *scan_conf_tree(FILE *fp);
 
 #endif /* ifndef UTILS_H */

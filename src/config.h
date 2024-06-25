@@ -18,5 +18,6 @@
 
 #define SHORT_STR_LEN 256
 #define LONG_STR_LEN 1024
+#define LONGER_STR_LEN 2048
 
 #endif /* ifndef CONFIG_H */
