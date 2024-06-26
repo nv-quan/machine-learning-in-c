@@ -40,57 +40,45 @@ int double_eq(double a, double b);
  */
 size_t s_strcpy(char *dst, const char *src, size_t dstsize, int *is_trunc);
 
-/* Config tree.
- *
- * Useful for writing/reading configuration to and from files.
- */
-typedef struct conf_tree {
-  struct conf_tree *children;
-  size_t children_capacity;
-  size_t child_count;
-  char name[SHORT_STR_LEN];
-  char value[LONG_STR_LEN];
-} ConfTree;
+#define CONF_FIELD_MAX_COUNT 100
 
-/* Initialize a ConfTree
- *
- * Parameters:
- * - tree: the ConfTree needs to be initialized
- * - name: a null-terminated string used for the ConfTree name. This must not be
- *   null.
- * - val: a null-terminated string used for the ConfTree value. This can be
- * null.
- *
- * Return:
- * - 0 on success.
- * - non-zero on failure.
- */
-int conf_tree_init(ConfTree *tree, const char *name, const char *val);
+/* TODO: Add support for json-like objects and array */
+/* Serialized data field types */
+enum srd_field_type { INT, SIZE_T, FLOAT, DOUBLE, CHAR, STRING };
 
-/* Free the internal resources of a ConfTree.
- *
- * This does not free the tree itself.
- */
-void conf_tree_free(ConfTree *tree);
+/* Serialized data schema */
+typedef struct srd_schema {
+  size_t field_count;
+  enum conf_field_type types[CONF_FIELD_MAX_COUNT];
+  size_t sizes[CONF_FIELD_MAX_COUNT];
+  char names[CONF_FIELD_MAX_COUNT][SHORT_STR_LEN];
+} SrdSchema;
 
-/* Add a child to a ConfTree.
- *
- * On failure, no changes will be made to the parent.
- *
- * Parameters:
- * - parent: the target ConfTree.
- * - name: name of the child.
- * - val: value of the child.
- *
- * Return:
- * - A pointer to that child on success
- * - NULL pointer on failure
- */
-ConfTree *conf_tree_add(ConfTree *parent, const char *name, const char *val);
-void print_conf_tree(FILE *fp, ConfTree *tree, size_t level);
+enum parser_type {
+  OBJECT, /* JSON-like object */
+  MEMBER, /* JSON-like member */
+  STRING,
+  NUMBER,
+  CHAR,
+  DIGIT,
+};
 
-#define MAX_CONF_TREE_STACK 20
+typedef struct parser_conf {
+  enum parser_type type;
+} PrsrConf;
 
-ConfTree *scan_conf_tree(FILE *fp);
+int parse(FILE *fp, enum parser_type type, void *target, size_t size);
+
+/* Parse serialized data into an object */
+int deserialize(FILE *fp, SrdSchema *schema, void *object);
+/*{
+  if (fp == NULL || schema == NULL || object == NULL) return -1;
+}
+*/
+
+int serialize(FILE *fp, SrdSchema *schema, void *object);
+/*{
+      return 0;
+    }*/
 
 #endif /* ifndef UTILS_H */

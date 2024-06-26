@@ -383,49 +383,10 @@ csv_eor(int c, void *custom) {
 
 int
 save_dlconf(DLConf *conf, const char *file_path) {
-  FILE *fp;
-  ConfTree root, *curr;
-  char numstr[SHORT_STR_LEN];
-  size_t i;
-
-  GUARD_ZERO_NEG(conf);
-  if ((fp = fopen(file_path, "w")) == NULL) {
-    fprintf(stderr, "make_data_loader: Can't open file %s\n", file_path);
-    return -1;
-  }
-  GUARD_NZERO_NEG(conf_tree_init(&root, "DATA_LOADER_CONFIG", ""));
-  GUARD_ZERO_NEG(curr = conf_tree_add(&root, "OPTIONS", ""));
-  if (is_mem_based(conf)) {
-    rp_err("save_dlconf: Mem-based configs are not supported.");
-    return -1;
-  }
-  GUARD_ZERO_NEG(has_header(conf) && conf_tree_add(curr, "HAS_HEADER", ""));
-  GUARD_ZERO_NEG(is_one_insered(conf) && conf_tree_add(curr, "INSERT_ONE", ""));
-  sprintf(numstr, "%lu", conf->x_dim);
-  GUARD_ZERO_NEG(conf_tree_add(&root, "X_DIM", numstr));
-  sprintf(numstr, "%d", conf->y_col);
-  GUARD_ZERO_NEG(conf_tree_add(&root, "Y_COL", numstr));
-  GUARD_ZERO_NEG(curr = conf_tree_add(&root, "X_COLS", ""));
-  for (i = 0; i < conf->x_dim; ++i) {
-    sprintf(numstr, "%d", conf->x_cols[i]);
-    GUARD_ZERO_NEG(conf_tree_add(curr, "VAL", numstr));
-  }
-  GUARD_ZERO_NEG(conf_tree_add(&root, "FILE_PATH", conf->file_path));
-  print_conf_tree(fp, &root, 0);
-  fclose(fp);
   return 0;
 }
 
-DLConf *
-load_dlconf(const char *file_path) {
-  FILE *fp;
-  ConfTree *root;
-
-  if ((fp = fopen(file_path, "w")) == NULL) {
-    fprintf(stderr, "load_dlconf: Can't open file %s\n", file_path);
-    return NULL;
-  }
-  root = scan_conf_tree(fp);
-  fclose(fp);
+int
+load_dlconf(DLConf *conf, const char *file_path) {
   return NULL;
 }

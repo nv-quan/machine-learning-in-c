@@ -114,12 +114,13 @@ int save_dlconf(DLConf *conf, const char *file_path);
  *
  * Parameters:
  * - file_path: path to a text file that stores a data loader config
+ * - conf: the DLConf to initialize
  *
  * Return:
- * - pointer to a newly allocated DLConf on success
- * - NULL on failure
+ * - 0 on success
+ * - non-zero on failure
  */
-DLConf *load_dlconf(const char *file_path);
+int load_dlconf(DLConf *conf, const char *file_path);
 
 /* Load Data
  *
