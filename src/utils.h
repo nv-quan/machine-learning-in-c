@@ -44,10 +44,10 @@ size_t s_strcpy(char *dst, const char *src, size_t dstsize, int *is_trunc);
 
 /* TODO: Add support for json-like objects and array */
 /* Serialized data field types */
-enum srd_field_type { INT, SIZE_T, FLOAT, DOUBLE, CHAR, STRING };
+enum dat_field_type { INT, SIZE_T, FLOAT, DOUBLE, CHAR, STRING };
 
-/* Serialized data schema */
-typedef struct srd_schema {
+/* Data schema */
+typedef struct dat_schema {
   size_t field_count;
   enum conf_field_type types[CONF_FIELD_MAX_COUNT];
   size_t sizes[CONF_FIELD_MAX_COUNT];
@@ -55,13 +55,37 @@ typedef struct srd_schema {
 } SrdSchema;
 
 enum parser_type {
-  OBJECT, /* JSON-like object */
-  MEMBER, /* JSON-like member */
+  KEY,
   STRING,
   NUMBER,
   CHAR,
   DIGIT,
 };
+
+enum ast_type {
+  OBJECT,
+  LEFT_BRACKET,
+  RIGHT_BRACKET,
+  COMMA,
+  MEMBER,
+  QUOTE,
+  COLON,
+  STRING,
+};
+
+/* Abstract syntax tree node */
+typedef struct ast_node {
+  char *start;
+  char *end;
+  enum ast_type type;
+  struct ast_node *children;
+  size_t child_count;
+} AstNode;
+
+typedef struct parser_result {
+  char *raw_data;
+
+} PrsrResult;
 
 typedef struct parser_conf {
   enum parser_type type;
