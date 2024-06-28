@@ -1,4 +1,6 @@
 /* Simplified JSON grammar
+ * JSON
+ *      ELEMENT
  *
  * VALUE
  *      OBJECT
@@ -142,15 +144,30 @@ typedef struct grammar {
  * If an error occurs, NULL is returned. Possible errors include the grammar
  * being full, the rule already existing, or name being too long.
  */
-Rule* add_rule(Grammar *grammar, const char *name);
+Rule *add_rule(Grammar *grammar, const char *name);
 
 /* Find a rule in the grammar by name.
  *
  * When the rule is not found, NULL is returned. This function only works when
  * rules are added by add_rule.
- */ 
-Rule* find_rule(Grammar *grammar, const char *name);
+ */
+Rule *find_rule(Grammar *grammar, const char *name);
+
+/* Add an empty alternative to a rule */
+Alt *add_alternative(Rule *rule);
+
+/* Add a literal item to an alternative */
+Item *add_literal_item(Alt *alt, char literal);
+
+/* Add a rule name to an alternative */
+Item *add_rule_name_item(Alt *alt, const char *rule_name);
 
 void init_json_grammar(Grammar *grammar);
+
+/* Return 1 if string is smaller than SHORT_STR_LEN -1
+ *
+ * This is to prevent mishandling of null-terminated strings
+ */
+int is_string_valid(const char *string);
 
 #endif /* SIMPLE_JSON_H */
