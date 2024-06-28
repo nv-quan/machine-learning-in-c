@@ -1,0 +1,4 @@
+---
+Language:        Cpp
+BasedOnStyle:  Google
+AlwaysBreakAfterDefinitionReturnType: All # Use this option to reduce the width of funcition definitions
