@@ -126,12 +126,30 @@ typedef struct alternative {
 typedef struct rule {
   Alt alternatives[ALTERNATIVE_COUNT];
   size_t alternative_count;
+  char name[SHORT_STR_LEN];
 } Rule;
 
 typedef struct grammar {
-  char names[RULE_COUNT][SHORT_STR_LEN];
   Rule rules[RULE_COUNT];
+  size_t rule_count;
 } Grammar;
+
+/* Add a rule to the grammar and return a pointer to it.
+ *
+ * Internally, rules are sorted by name so that find_rule can be used
+ * efficiently. This is optimized for find_rule since find_rule is used more.
+ *
+ * If an error occurs, NULL is returned. Possible errors include the grammar
+ * being full, the rule already existing, or name being too long.
+ */
+Rule* add_rule(Grammar *grammar, const char *name);
+
+/* Find a rule in the grammar by name.
+ *
+ * When the rule is not found, NULL is returned. This function only works when
+ * rules are added by add_rule.
+ */ 
+Rule* find_rule(Grammar *grammar, const char *name);
 
 void init_json_grammar(Grammar *grammar);
 
