@@ -141,8 +141,7 @@ init_json_grammar(Grammar *grammar) {
    *      ELEMENT
    */
   rule = add_rule(grammar, "JSON");
-  alt = add_alternative(rule);
-  item = add_rule_name_item(alt, "ELEMENT");
+  item = add_rule_name_item(add_alternative(rule), "ELEMENT");
 
   /* VALUE
    *      OBJECT
@@ -153,6 +152,14 @@ init_json_grammar(Grammar *grammar) {
    *      FALSE
    *      NULL
    */
+  rule = add_rule(grammar, "VALUE");
+  item = add_rule_name_item(add_alternative(rule), "OBJECT");
+  item = add_rule_name_item(add_alternative(rule), "ARRAY");
+  item = add_rule_name_item(add_alternative(rule), "STRING");
+  item = add_rule_name_item(add_alternative(rule), "NUMBER");
+  item = add_rule_name_item(add_alternative(rule), "TRUE");
+  item = add_rule_name_item(add_alternative(rule), "FALSE");
+  item = add_rule_name_item(add_alternative(rule), "NULL");
 }
 
 Rule *
