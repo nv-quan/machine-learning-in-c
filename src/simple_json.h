@@ -162,12 +162,16 @@ Item *add_literal_item(Alt *alt, char literal);
 /* Add a rule name to an alternative */
 Item *add_rule_name_item(Alt *alt, const char *rule_name);
 
-void init_json_grammar(Grammar *grammar);
-
 /* Return 1 if string is smaller than SHORT_STR_LEN -1
  *
  * This is to prevent mishandling of null-terminated strings
  */
 int is_string_valid(const char *string);
+
+/* Parse input into a grammar.
+ *
+ * Input is a string that uses EBNF to specify the grammar
+ */
+int parse_grammar(const char *input, Grammar *grammar);
 
 #endif /* SIMPLE_JSON_H */

@@ -69,31 +69,6 @@ init_rule_name_item(Item *item, const char *name) {
   return item;
 }
 
-/* JSON
- *      ELEMENT
- */
-void
-init_json_rule(Rule *rule) {
-  Alt *alt;
-  Item *item;
-
-  rule->alternative_count = 1;
-  alt = rule->alternatives[0];
-  alt.item_count = 1;
-  item = alt.items[0];
-  item.type = RULE_NAME;
-  strcpy(item.val.rule_name, "ELEMENT");
-}
-/* VALUE
- *      OBJECT
- *      ARRAY
- *      STRING
- *      NUMBER
- *      TRUE
- *      FALSE
- *      NULL
- */
-
 Rule *
 add_rule(Grammar *grammar, const char *name) {
   size_t pos, i;
@@ -124,44 +99,6 @@ add_alternative(Rule *rule) {
   return rule->alternatives + rule->alternative_count++;
 }
 
-Item *
-add_item(Alt *alternative) {
-  if (alternative == NULL) return NULL;
-}
-
-void
-init_json_grammar(Grammar *grammar) {
-  Rule *rule;
-  Alt *alt;
-  Item *item;
-
-  grammar = init_grammar(grammar);
-  /*
-   * JSON
-   *      ELEMENT
-   */
-  rule = add_rule(grammar, "JSON");
-  item = add_rule_name_item(add_alternative(rule), "ELEMENT");
-
-  /* VALUE
-   *      OBJECT
-   *      ARRAY
-   *      STRING
-   *      NUMBER
-   *      TRUE
-   *      FALSE
-   *      NULL
-   */
-  rule = add_rule(grammar, "VALUE");
-  item = add_rule_name_item(add_alternative(rule), "OBJECT");
-  item = add_rule_name_item(add_alternative(rule), "ARRAY");
-  item = add_rule_name_item(add_alternative(rule), "STRING");
-  item = add_rule_name_item(add_alternative(rule), "NUMBER");
-  item = add_rule_name_item(add_alternative(rule), "TRUE");
-  item = add_rule_name_item(add_alternative(rule), "FALSE");
-  item = add_rule_name_item(add_alternative(rule), "NULL");
-}
-
 Rule *
 find_rule(Grammar *grammar, const char *name) {
   Rule *result;
@@ -183,6 +120,15 @@ is_string_valid(const char *string) {
 }
 
 Item *
+add_literal_item(Alt *alt, char literal) {
+  Item *item;
+  if (alt == NULL) return NULL;
+  if (alt->item_count >= ITEM_COUNT) return NULL;
+
+  return init_literal_item(alt->item + alt->item_count++, literal);
+}
+
+Item *
 add_rule_name_item(Alt *alt, const char *rule_name) {
   Item *item;
   if (alt == NULL || !is_string_valid(rule_name)) return NULL;
@@ -190,3 +136,6 @@ add_rule_name_item(Alt *alt, const char *rule_name) {
 
   return init_rule_name_item(alt->items + alt->item_count++, rule_name);
 }
+
+int
+parse_grammar(const char *input, Grammar *grammar) {}
