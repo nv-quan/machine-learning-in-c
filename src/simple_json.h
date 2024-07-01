@@ -170,7 +170,7 @@ int is_string_valid(const char *string);
 
 /* Parse input into a grammar.
  *
- * Input is a string that uses EBNF to specify the grammar
+ * Input is a string that uses McKeeman Form to specify the grammar
  */
 int parse_grammar(const char *input, Grammar *grammar);
 

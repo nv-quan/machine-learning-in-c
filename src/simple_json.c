@@ -137,5 +137,29 @@ add_rule_name_item(Alt *alt, const char *rule_name) {
   return init_rule_name_item(alt->items + alt->item_count++, rule_name);
 }
 
+char *raw_grammar;
+size_t raw_grammar_len;
+Grammar *target;
+
 int
-parse_grammar(const char *input, Grammar *grammar) {}
+parse_rules(int start_idx) {
+  int rule_idx;
+
+  rule_idx = start_idx;
+  rule_count = 0;
+  while ((rule_idx = parse_rule(rule_idx)) != -1) {
+    continue;
+  }
+  return rule_idx;
+}
+
+int
+parse_grammar(const char *input, int char_idx, Grammar *grammar) {
+  int rules_end;
+  raw_grammar = input;
+  raw_grammar_len = strlen(input);
+  target = grammar;
+  rules_end = parse_rules(char_idx);
+  if (rules_end == raw_grammar_len) return 0;
+  return -1;
+}
