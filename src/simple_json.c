@@ -137,12 +137,16 @@ add_rule_name_item(Alt *alt, const char *rule_name) {
   return init_rule_name_item(alt->items + alt->item_count++, rule_name);
 }
 
-char *raw_grammar;
-size_t raw_grammar_len;
-Grammar *target;
+typedef struct parser_context {
+  Grammar *target;
+  char *raw_grammar;
+  size_t raw_grammar_len;
+  int start_idx;
+} ParserCtx;
 
+/* callback: array of rules and array size */
 int
-parse_rules(int start_idx) {
+parse_rules(ParserCtx *ctx, void (*callback)(Rule *, size_t, Grammar *)) {
   int rule_idx;
 
   rule_idx = start_idx;
@@ -150,7 +154,17 @@ parse_rules(int start_idx) {
   while ((rule_idx = parse_rule(rule_idx)) != -1) {
     continue;
   }
+  if (callback != NULL) callback(start_idx, rule_idx);
   return rule_idx;
+}
+
+void
+rules_callback(Rule *rules, size_t size, Grammar *target) {
+  size_t i;
+  for (i = 0; i < size; ++i) {
+    add_rule(target, rules[i].name);
+    memcpy(target->rules + target->rule_count - 1, rules + i, sizeof(Rule));
+  }
 }
 
 int
@@ -159,7 +173,7 @@ parse_grammar(const char *input, int char_idx, Grammar *grammar) {
   raw_grammar = input;
   raw_grammar_len = strlen(input);
   target = grammar;
-  rules_end = parse_rules(char_idx);
+  rules_end = parse_rules(char_idx, rules_callback);
   if (rules_end == raw_grammar_len) return 0;
   return -1;
 }
