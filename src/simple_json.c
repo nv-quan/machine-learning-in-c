@@ -158,6 +158,8 @@ parse_rules(ParserCtx *ctx, void (*callback)(Rule *, size_t, Grammar *)) {
   return rule_idx;
 }
 
+int parse_rule(ParserCtx *ctx, void (*callback)(Rule *, Grammar *));
+
 void
 rules_callback(Rule *rules, size_t size, Grammar *target) {
   size_t i;
