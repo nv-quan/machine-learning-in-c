@@ -139,17 +139,37 @@ add_rule_name_item(Alt *alt, const char *rule_name) {
 
 typedef struct parser_context {
   Grammar *target;
-  char *raw_grammar;
-  size_t raw_grammar_len;
-  int start_idx;
+  size_t rule_idx;
+  size_t rule_name_idx;
+  size_t alt_idx;
+  size_t item_idx;
+  size_t item_rule_name_idx;
 } ParserCtx;
+
+typedef enum callback_type {
+  CHAR,
+} CbType;
+
+typedef int (*ParserCb)(CbType, ParserCtx *, void *, size_t);
+
+int
+parser_callback(CbType type, ParserCtx *ctx, void *data, size_t size) {}
+
+int
+parse_string(void (*callback)(char **)) {}
+
+int
+parse_rule(ParserCtx *ctx, void (*callback)(Rule *, Grammar *)) {
+  char name[SHORT_STR_LEN];
+  parse_string(ctx,
+}
 
 /* callback: array of rules and array size */
 int
 parse_rules(ParserCtx *ctx, void (*callback)(Rule *, size_t, Grammar *)) {
   int rule_idx;
 
-  rule_idx = start_idx;
+  rule_idx = ctx->start_idx;
   rule_count = 0;
   while ((rule_idx = parse_rule(rule_idx)) != -1) {
     continue;
@@ -158,24 +178,25 @@ parse_rules(ParserCtx *ctx, void (*callback)(Rule *, size_t, Grammar *)) {
   return rule_idx;
 }
 
-int parse_rule(ParserCtx *ctx, void (*callback)(Rule *, Grammar *));
-
-void
+int
 rules_callback(Rule *rules, size_t size, Grammar *target) {
-  size_t i;
-  for (i = 0; i < size; ++i) {
-    add_rule(target, rules[i].name);
-    memcpy(target->rules + target->rule_count - 1, rules + i, sizeof(Rule));
+  if (target->rule_count + size <= RULE_COUNT) {
+    memcpy(target->rules + target->rule_count, rules, sizeof(Rule) * size);
+    target->rule_count += size;
+  } else {
+    return -1;
   }
 }
 
 int
 parse_grammar(const char *input, int char_idx, Grammar *grammar) {
   int rules_end;
-  raw_grammar = input;
-  raw_grammar_len = strlen(input);
-  target = grammar;
-  rules_end = parse_rules(char_idx, rules_callback);
+  ParserCtx ctx;
+  ctx->raw_grammar = input;
+  ctx->raw_grammar_len = strlen(input);
+  ctx->start_idx = 0;
+  ctx->target = grammar;
+  rules_end = parse_rules(&ctx, rules_callback);
   if (rules_end == raw_grammar_len) return 0;
   return -1;
 }
