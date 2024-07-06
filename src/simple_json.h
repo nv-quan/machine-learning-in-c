@@ -121,19 +121,19 @@ typedef struct item {
 } Item;
 
 typedef struct alternative {
-  Item items[ITEM_COUNT];
   size_t item_count;
+  Item items[ITEM_COUNT];
 } Alt;
 
 typedef struct rule {
-  Alt alternatives[ALTERNATIVE_COUNT];
   size_t alternative_count;
   char name[SHORT_STR_LEN];
+  Alt alternatives[ALTERNATIVE_COUNT];
 } Rule;
 
 typedef struct grammar {
-  Rule rules[RULE_COUNT];
   size_t rule_count;
+  Rule rules[RULE_COUNT];
 } Grammar;
 
 /* Add a rule to the grammar and return a pointer to it.

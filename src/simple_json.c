@@ -139,21 +139,26 @@ add_rule_name_item(Alt *alt, const char *rule_name) {
 
 typedef struct parser_context {
   Grammar *target;
-  size_t rule_idx;
-  size_t rule_name_idx;
-  size_t alt_idx;
-  size_t item_idx;
-  size_t item_rule_name_idx;
 } ParserCtx;
 
-typedef enum callback_type {
-  CHAR,
-} CbType;
+enum parser_callback_data_type {
+  PCDT_SIGNAL,
+  PCDT_DATA,
+};
+enum parser_callback_signal {
+  PCS_RULE_BEGIN,
+  PCS_RULE_DONE,
+  PCS_RULE_NAME_BEGIN,
+  PCS_RULE_NAME_DONE,
+};
 
-typedef int (*ParserCb)(CbType, ParserCtx *, void *, size_t);
+typedef struct parser_callback_data {
+} ParserCbData;
+
+typedef int (*ParserCb)(ParserCtx *, ParserCbData *);
 
 int
-parser_callback(CbType type, ParserCtx *ctx, void *data, size_t size) {}
+char_callback(ParserCtx *ctx, void *data, size_t size) {}
 
 int
 parse_string(void (*callback)(char **)) {}
